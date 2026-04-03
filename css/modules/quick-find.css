@@ -1,0 +1,125 @@
+.quick-find {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+  z-index: 900;
+}
+
+.quick-find.hidden {
+  display: none;
+}
+
+.quick-find-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.quick-find-dialog {
+  position: relative;
+  width: 90%;
+  max-width: 560px;
+  background: rgba(30, 30, 50, 0.98);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-dialog);
+  overflow: hidden;
+  animation: slideDown 0.15s ease;
+}
+
+.quick-find-input {
+  width: 100%;
+  padding: 16px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  font-size: var(--font-size-lg);
+}
+
+.quick-find-input:focus {
+  outline: none;
+}
+
+.quick-find-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.quick-find-results {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.quick-find-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.quick-find-item:hover,
+.quick-find-item.selected {
+  background: var(--glass-bg-hover);
+}
+
+.quick-find-item-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.quick-find-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.quick-find-item-title {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quick-find-item-url {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quick-find-empty {
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: var(--font-size-sm);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookmarkTab</title>
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 背景壁纸层 -->
+    <div id="wallpaper" class="wallpaper"></div>
+
+    <!-- 顶部工具栏（悬停显示） -->
+    <header id="toolbar" class="toolbar hidden">
+      <button id="btn-new-bookmark" class="toolbar-btn" title="新建书签 (N)">
+        <span class="toolbar-icon">+</span>
+        <span class="toolbar-label">新建书签</span>
+      </button>
+      <button id="btn-new-folder" class="toolbar-btn" title="新建文件夹 (Shift+N)">
+        <span class="toolbar-icon">⊞</span>
+        <span class="toolbar-label">新建文件夹</span>
+      </button>
+      <div class="toolbar-spacer"></div>
+      <button id="btn-search" class="toolbar-btn" title="快速查找 (Ctrl+F 或 /)">
+        <span class="toolbar-icon">🔍</span>
+        <span class="toolbar-label">快速查找</span>
+      </button>
+      <button id="btn-settings" class="toolbar-btn" title="设置">
+        <span class="toolbar-icon">⚙</span>
+      </button>
+    </header>
+
+    <!-- 书签内容区（卡片网格） -->
+    <main id="content" class="content">
+      <!-- 面包屑导航 -->
+      <nav id="breadcrumb" class="breadcrumb">
+        <span class="breadcrumb-item" data-id="1">书签栏</span>
+      </nav>
+      <div id="bookmark-grid" class="bookmark-grid"></div>
+    </main>
+
+    <!-- 快捷键提示（左下角悬停气泡） -->
+    <div id="shortcuts-hint" class="shortcuts-hint hidden">
+      <div class="shortcuts-title">快捷键</div>
+      <div class="shortcuts-list">
+        <div class="shortcut-item"><kbd>N</kbd> 新建书签</div>
+        <div class="shortcut-item"><kbd>Shift+N</kbd> 新建文件夹</div>
+        <div class="shortcut-item"><kbd>Ctrl+F</kbd> / <kbd>/</kbd> 快速查找</div>
+        <div class="shortcut-item"><kbd>Enter</kbd> 打开选中项</div>
+        <div class="shortcut-item"><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> 导航</div>
+        <div class="shortcut-item"><kbd>Backspace</kbd> 返回上级</div>
+        <div class="shortcut-item"><kbd>Delete</kbd> 删除选中项</div>
+        <div class="shortcut-item"><kbd>F2</kbd> 编辑选中项</div>
+        <div class="shortcut-item"><kbd>Ctrl+Click</kbd> 多选</div>
+        <div class="shortcut-item"><kbd>G</kbd> 切换视图</div>
+      </div>
+    </div>
+
+    <!-- 快速查找弹窗 -->
+    <div id="quick-find" class="quick-find hidden">
+      <div class="quick-find-overlay"></div>
+      <div class="quick-find-dialog">
+        <input type="text" id="quick-find-input" class="quick-find-input" placeholder="搜索书签…" autocomplete="off">
+        <div id="quick-find-results" class="quick-find-results"></div>
+      </div>
+    </div>
+
+    <!-- 编辑书签弹窗 -->
+    <div id="edit-dialog" class="dialog hidden">
+      <div class="dialog-overlay"></div>
+      <div class="dialog-content">
+        <div class="dialog-header">
+          <h3 id="edit-dialog-title">新建书签</h3>
+          <button class="dialog-close" data-action="close">&times;</button>
+        </div>
+        <div class="dialog-body">
+          <div class="form-group">
+            <label for="edit-title">标题</label>
+            <input type="text" id="edit-title" class="form-input" placeholder="输入书签标题" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="edit-url">网址</label>
+            <input type="url" id="edit-url" class="form-input" placeholder="https://example.com" autocomplete="off">
+            <div id="favicon-preview" class="favicon-preview"></div>
+          </div>
+        </div>
+        <div class="dialog-footer">
+          <button class="btn btn-secondary" data-action="cancel">取消</button>
+          <button class="btn btn-primary" id="edit-dialog-confirm">确认</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 移动书签弹窗 -->
+    <div id="move-dialog" class="dialog hidden">
+      <div class="dialog-overlay"></div>
+      <div class="dialog-content">
+        <div class="dialog-header">
+          <h3>移动到…</h3>
+          <button class="dialog-close" data-action="close">&times;</button>
+        </div>
+        <div class="dialog-body">
+          <div id="move-dialog-tree" class="folder-tree"></div>
+        </div>
+        <div class="dialog-footer">
+          <button class="btn btn-secondary" data-action="cancel">取消</button>
+          <button class="btn btn-primary" id="move-dialog-confirm">确认</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 设置面板 -->
+    <div id="settings-panel" class="settings-panel hidden">
+      <div class="settings-overlay"></div>
+      <div class="settings-content">
+        <div class="settings-header">
+          <h3>设置</h3>
+          <button class="settings-close" data-action="close">&times;</button>
+        </div>
+        <div class="settings-body">
+          <div class="settings-section">
+            <h4>视图模式</h4>
+            <div class="settings-options">
+              <button class="settings-option active" data-view="grid">
+                <span class="option-icon">▦</span> 网格
+              </button>
+              <button class="settings-option" data-view="list">
+                <span class="option-icon">☰</span> 列表
+              </button>
+            </div>
+          </div>
+          <div class="settings-section">
+            <h4>壁纸</h4>
+            <div id="wallpaper-grid" class="wallpaper-grid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>

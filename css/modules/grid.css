@@ -1,0 +1,79 @@
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 72px 24px 24px;
+  min-height: 0;
+  /* 补偿浏览器标签栏/地址栏占用的空间，让内容视觉上更居中 */
+  margin-top: -200px;
+}
+
+.bookmark-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+  max-width: 1200px;
+  width: 100%;
+  justify-content: center;
+}
+
+.bookmark-grid .bookmark-card {
+  flex: 0 0 var(--card-size);
+  aspect-ratio: 1;
+}
+
+/* 列表视图 */
+.bookmark-grid.list-view {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 800px;
+  width: 100%;
+}
+
+.bookmark-grid.list-view .bookmark-card {
+  width: 100%;
+  height: 48px;
+  flex-direction: row;
+  padding: 0 16px;
+  gap: 12px;
+}
+
+.bookmark-grid.list-view .card-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.bookmark-grid.list-view .card-info {
+  flex: 1;
+  text-align: center;
+  gap: 4px;
+}
+
+.bookmark-grid.list-view .card-title {
+  font-size: var(--font-size-sm);
+  -webkit-line-clamp: 1;
+}
+
+.bookmark-grid.list-view .card-meta {
+  display: none;
+}
+
+/* 拖拽占位 */
+.bookmark-grid.drag-over::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(99, 179, 237, 0.1);
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius-card);
+  pointer-events: none;
+  z-index: -1;
+}

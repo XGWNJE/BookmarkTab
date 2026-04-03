@@ -1,0 +1,32 @@
+[
+  {
+    "id": "default",
+    "name": "默认渐变",
+    "type": "gradient",
+    "value": "#000000"
+  },
+  {
+    "id": "sunset",
+    "name": "日落",
+    "type": "gradient",
+    "value": "linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)"
+  },
+  {
+    "id": "ocean",
+    "name": "海洋",
+    "type": "gradient",
+    "value": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+  },
+  {
+    "id": "forest",
+    "name": "森林",
+    "type": "gradient",
+    "value": "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)"
+  },
+  {
+    "id": "dark",
+    "name": "深空",
+    "type": "gradient",
+    "value": "linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%)"
+  }
+]

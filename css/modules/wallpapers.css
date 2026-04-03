@@ -1,0 +1,43 @@
+.wallpaper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background: #f5f5f7;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.wallpaper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 毛玻璃叠加 - 浅色模式 */
+.wallpaper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  background: rgba(0, 0, 0, 0.02);
+  pointer-events: none;
+}
+
+/* 深色模式 */
+@media (prefers-color-scheme: dark) {
+  .wallpaper {
+    background: #000000;
+  }
+
+  .wallpaper::after {
+    background: rgba(0, 0, 0, 0.3);
+  }
+}

@@ -1,0 +1,123 @@
+/* 卡片加载动效 - 依次从下淡入 */
+.bookmark-card {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.bookmark-card.loaded {
+  animation: cardFadeIn 0.3s ease forwards;
+}
+
+@keyframes cardFadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 进入文件夹滑入动效 */
+.bookmark-grid.slide-in-left .bookmark-card {
+  animation: slideInLeft 0.3s ease forwards;
+}
+
+.bookmark-grid.slide-in-right .bookmark-card {
+  animation: slideInRight 0.3s ease forwards;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 删除卡片缩放淡出 */
+.bookmark-card.removing {
+  animation: cardRemove 0.25s ease forwards;
+}
+
+@keyframes cardRemove {
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* 新建卡片从0缩放到1 */
+.bookmark-card.adding {
+  animation: cardAdd 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes cardAdd {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 抖动警告（删除确认） */
+.bookmark-card.shake {
+  animation: cardShake 0.4s ease;
+}
+
+@keyframes cardShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+
+/* 拖拽中卡片半透明 */
+.bookmark-card.is-dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+/* 拖拽目标区域指示 */
+.bookmark-grid.drag-active .bookmark-card:not(.is-dragging) {
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.bookmark-grid.drag-active .bookmark-card.drop-target {
+  border-color: var(--accent);
+  background: rgba(99, 179, 237, 0.1);
+}
+
+/* 淡入淡出 */
+.fade-enter {
+  opacity: 0;
+}
+
+.fade-enter-active {
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+.fade-exit {
+  opacity: 1;
+}
+
+.fade-exit-active {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}

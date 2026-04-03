@@ -1,0 +1,12 @@
+@import './modules/variables.css';
+@import './modules/base.css';
+@import './modules/wallpapers.css';
+@import './modules/animations.css';
+@import './modules/toolbar.css';
+@import './modules/breadcrumb.css';
+@import './modules/grid.css';
+@import './modules/card.css';
+@import './modules/dialog.css';
+@import './modules/quick-find.css';
+@import './modules/settings.css';
+@import './modules/shortcuts.css';
