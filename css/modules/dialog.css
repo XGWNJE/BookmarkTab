@@ -32,7 +32,7 @@
   max-width: 420px;
   background: rgba(30, 30, 50, 0.95);
   border: 1px solid var(--glass-border);
-  border-radius: var(--radius-card);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-dialog);
   animation: slideUp 0.2s ease;
 }
@@ -180,6 +180,37 @@
 
 .btn-danger:hover {
   background: var(--danger-hover);
+}
+
+/* SVG 粘贴预览框 */
+.svg-paste-preview {
+  margin-top: 12px;
+  width: 100%;
+  height: 80px;
+  background: var(--glass-bg);
+  border: 1px dashed var(--glass-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: border-color var(--transition-fast);
+}
+
+.svg-paste-preview:not(:empty) {
+  border-style: solid;
+  border-color: var(--accent);
+}
+
+.svg-paste-preview svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* SVG 粘贴对话框宽一些以容纳代码 */
+.dialog-content.svg-paste-dialog {
+  max-width: 540px;
 }
 
 @keyframes fadeIn {

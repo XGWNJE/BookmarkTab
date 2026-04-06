@@ -9,11 +9,18 @@ import Toolbar from './components/Toolbar.js';
 import EditDialog from './components/EditDialog.js';
 import MoveDialog from './components/MoveDialog.js';
 import QuickFind from './components/QuickFind.js';
-import SettingsPanel from './components/SettingsPanel.js';
+import BookmarkStore from './core/BookmarkStore.js';
+// TODO: 壁纸系统后续重构，当前暂不加载
+// import SettingsPanel from './components/SettingsPanel.js';
 
 class App {
   constructor() {
     this.grid = null;
+    // 卡片尺寸：最小 80px，最大 200px，步进 20px
+    this.cardSizeMin = 80;
+    this.cardSizeMax = 200;
+    this.cardSizeStep = 20;
+    this.cardSize = parseInt(localStorage.getItem('cardSize') || '120', 10);
     this.init();
   }
 
@@ -25,7 +32,11 @@ class App {
     new EditDialog();
     new MoveDialog();
     new QuickFind();
-    new SettingsPanel();
+    // TODO: 壁纸系统后续重构
+    // new SettingsPanel();
+
+    // 应用已保存的卡片尺寸
+    this.applyCardSize(this.cardSize);
 
     // 全局快捷键
     this.bindKeyboardShortcuts();
@@ -33,13 +44,15 @@ class App {
     // 快捷键提示
     this.bindShortcutsHint();
 
+    // 菜单面板
+    this.bindMenuPanel();
+
+    // 拖拽侧边区域
+    this.bindDragZones();
+
     // 全局拖拽
     this.bindGlobalDrag();
 
-    // 视图模式
-    EventBus.on('settings:viewMode', (mode) => {
-      this.grid.setViewMode(mode);
-    });
   }
 
   bindKeyboardShortcuts() {
@@ -79,15 +92,6 @@ class App {
         }
       }
 
-      // G - 切换视图
-      if (key === 'g' && !ctrl) {
-        e.preventDefault();
-        const current = this.grid.viewMode;
-        const next = current === 'grid' ? 'list' : 'grid';
-        this.grid.setViewMode(next);
-        EventBus.emit('settings:viewMode', next);
-      }
-
       // Escape - 关闭弹窗
       if (key === 'escape') {
         // 关闭所有弹窗
@@ -96,12 +100,38 @@ class App {
         });
       }
 
-      // 方向键导航
-      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
+      // = / + 放大卡片，- 缩小卡片（不与 Ctrl+滚轮冲突）
+      if ((key === '=' || key === '+') && !ctrl) {
         e.preventDefault();
-        this.navigateCards(key);
+        this.resizeCards(1);
+      }
+      if (key === '-' && !ctrl) {
+        e.preventDefault();
+        this.resizeCards(-1);
+      }
+
+      // 方向键导航（弹窗打开时不响应）
+      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
+        const hasOpenDialog = document.querySelector('.dialog:not(.hidden), .quick-find:not(.hidden)');
+        if (!hasOpenDialog && !e.altKey) {
+          e.preventDefault();
+          this.navigateCards(key);
+        }
       }
     });
+  }
+
+  resizeCards(direction) {
+    this.cardSize = Math.min(
+      this.cardSizeMax,
+      Math.max(this.cardSizeMin, this.cardSize + direction * this.cardSizeStep)
+    );
+    this.applyCardSize(this.cardSize);
+    localStorage.setItem('cardSize', this.cardSize);
+  }
+
+  applyCardSize(size) {
+    document.documentElement.style.setProperty('--card-size', `${size}px`);
   }
 
   navigateCards(direction) {
@@ -111,12 +141,27 @@ class App {
     const focused = document.querySelector('.bookmark-card:focus');
     let index = focused ? cards.indexOf(focused) : 0;
 
+    // 动态计算每行列数
+    let cols = 1;
+    if (cards.length >= 2) {
+      const firstTop = cards[0].getBoundingClientRect().top;
+      for (let i = 1; i < cards.length; i++) {
+        if (cards[i].getBoundingClientRect().top !== firstTop) {
+          cols = i;
+          break;
+        }
+      }
+      if (cols === 1 && cards[cards.length - 1].getBoundingClientRect().top === firstTop) {
+        cols = cards.length; // 所有卡片在同一行
+      }
+    }
+
     switch (direction) {
       case 'arrowup':
-        index = Math.max(0, index - 4); // 假设4列
+        index = Math.max(0, index - cols);
         break;
       case 'arrowdown':
-        index = Math.min(cards.length - 1, index + 4);
+        index = Math.min(cards.length - 1, index + cols);
         break;
       case 'arrowleft':
         index = Math.max(0, index - 1);
@@ -129,22 +174,271 @@ class App {
     cards[index]?.focus();
   }
 
-  bindShortcutsHint() {
-    const hint = document.getElementById('shortcuts-hint');
-    let showTimeout;
+  bindShortcutsHint() {    const hint = document.getElementById('shortcuts-hint');
+    const trigger = document.getElementById('shortcuts-trigger');
+    let hideTimeout;
 
-    document.addEventListener('mousemove', (e) => {
-      if (e.clientX < 30 && e.clientY > window.innerHeight - 80) {
-        clearTimeout(showTimeout);
-        showTimeout = setTimeout(() => {
-          hint.classList.add('visible');
-        }, 300);
-      } else {
-        clearTimeout(showTimeout);
+    const show = () => {
+      clearTimeout(hideTimeout);
+      hint.classList.add('visible');
+    };
+
+    const scheduleHide = () => {
+      hideTimeout = setTimeout(() => {
         hint.classList.remove('visible');
+      }, 150);
+    };
+
+    // 鼠标悬停触发锚点或面板本身时显示
+    trigger.addEventListener('mouseenter', show);
+    trigger.addEventListener('mouseleave', scheduleHide);
+    hint.addEventListener('mouseenter', show);
+    hint.addEventListener('mouseleave', scheduleHide);
+  }
+
+  bindMenuPanel() {
+    const trigger = document.getElementById('menu-trigger');
+    const panel   = document.getElementById('menu-panel');
+    const newBtn  = document.getElementById('open-mode-new');
+    const curBtn  = document.getElementById('open-mode-current');
+
+    // 读取并应用已保存的跳转方式（默认：新标签页）
+    const saved = localStorage.getItem('openMode') || 'new';
+    this.applyOpenMode(saved, newBtn, curBtn);
+
+    // 切换按钮
+    document.getElementById('open-mode-group').addEventListener('click', (e) => {
+      const btn = e.target.closest('.menu-toggle-btn');
+      if (!btn) return;
+      const mode = btn.dataset.value;
+      localStorage.setItem('openMode', mode);
+      this.applyOpenMode(mode, newBtn, curBtn);
+    });
+
+    // 点击触发按钮切换面板
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isVisible = panel.classList.contains('visible');
+      if (isVisible) {
+        panel.classList.remove('visible');
+        trigger.classList.remove('active');
+      } else {
+        panel.classList.add('visible');
+        trigger.classList.add('active');
       }
     });
+
+    // 面板内点击不冒泡（防止被外部关闭）
+    panel.addEventListener('click', (e) => e.stopPropagation());
+
+    // 点击外部关闭
+    document.addEventListener('click', () => {
+      panel.classList.remove('visible');
+      trigger.classList.remove('active');
+    });
   }
+
+  applyOpenMode(mode, newBtn, curBtn) {
+    if (mode === 'current') {
+      curBtn.classList.add('active');
+      newBtn.classList.remove('active');
+    } else {
+      newBtn.classList.add('active');
+      curBtn.classList.remove('active');
+    }
+  }
+
+  // ── 拖拽侧边区域 ──────────────────────────────────────────────────────────
+
+  bindDragZones() {
+    const movePanel    = document.getElementById('drag-move-panel');
+    const folderTree   = document.getElementById('drag-folder-tree');
+    const deleteZone   = document.getElementById('drag-delete-zone');
+
+    // 当前拖拽的节点 id（dragstart 时由 EventBus 通知）
+    let activeDragId   = null;
+    let activeDragIsFolder = false;
+
+    // 触发区宽度阈值（占视口百分比）
+    const EDGE_RATIO = 0.12;
+
+    // ── 监听 dragstart/dragend 获取被拖拽项信息 ──
+    EventBus.on('card:dragstart', ({ id, isFolder }) => {
+      activeDragId = id;
+      activeDragIsFolder = isFolder;
+    });
+    EventBus.on('card:dragend', () => {
+      activeDragId = null;
+      activeDragIsFolder = false;
+      this._hideDragZones(movePanel, deleteZone);
+    });
+
+    // ── 全局 dragover：检测是否进入边缘区域 ──
+    document.addEventListener('dragover', (e) => {
+      if (!activeDragId) return;
+      const x = e.clientX;
+      const w = window.innerWidth;
+
+      if (x <= w * EDGE_RATIO) {
+        // 进入左侧区域
+        if (!movePanel.classList.contains('visible')) {
+          this._showMovePanel(movePanel, folderTree, activeDragId);
+        }
+        deleteZone.classList.remove('visible');
+      } else if (x >= w * (1 - EDGE_RATIO)) {
+        // 进入右侧区域
+        if (!deleteZone.classList.contains('visible')) {
+          deleteZone.classList.add('visible');
+        }
+        movePanel.classList.remove('visible');
+      } else {
+        // 中间区域：收回两侧面板
+        movePanel.classList.remove('visible');
+        deleteZone.classList.remove('visible');
+      }
+    });
+
+    // ── 右侧删除区域 dragover/dragleave/drop ──
+    deleteZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      deleteZone.classList.add('over');
+    });
+    deleteZone.addEventListener('dragleave', (e) => {
+      if (!deleteZone.contains(e.relatedTarget)) {
+        deleteZone.classList.remove('over');
+      }
+    });
+    deleteZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const id = e.dataTransfer.getData('text/plain');
+      if (id) {
+        EventBus.emit('card:delete', { id, isFolder: activeDragIsFolder });
+      }
+      deleteZone.classList.remove('over');
+      this._hideDragZones(movePanel, deleteZone);
+    });
+
+    // ── 左侧面板内的 dragover/drop ──
+    let _scrollRaf = null;
+
+    const _stopAutoScroll = () => {
+      if (_scrollRaf) { cancelAnimationFrame(_scrollRaf); _scrollRaf = null; }
+    };
+
+    // 挂到元素上，供 _hideDragZones 统一调用
+    folderTree._stopAutoScroll = _stopAutoScroll;
+
+    const _startAutoScroll = (speed) => {
+      _stopAutoScroll();
+      const step = () => {
+        folderTree.scrollTop += speed;
+        _scrollRaf = requestAnimationFrame(step);
+      };
+      _scrollRaf = requestAnimationFrame(step);
+    };
+
+    folderTree.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+
+      // 文件夹高亮
+      const item = e.target.closest('.drag-folder-item');
+      folderTree.querySelectorAll('.drag-folder-item').forEach(el => el.classList.remove('drag-target'));
+      if (item) item.classList.add('drag-target');
+
+      // 自动滚动：检测鼠标距面板顶/底的距离
+      const rect = folderTree.getBoundingClientRect();
+      const ZONE = 60;   // 触发区高度 px
+      const MAX  = 12;   // 最大滚动速度 px/帧
+      const distTop    = e.clientY - rect.top;
+      const distBottom = rect.bottom - e.clientY;
+
+      if (distTop < ZONE && distTop > 0) {
+        _startAutoScroll(-Math.round(MAX * (1 - distTop / ZONE)));
+      } else if (distBottom < ZONE && distBottom > 0) {
+        _startAutoScroll(Math.round(MAX * (1 - distBottom / ZONE)));
+      } else {
+        _stopAutoScroll();
+      }
+    });
+
+    folderTree.addEventListener('dragleave', (e) => {
+      if (!folderTree.contains(e.relatedTarget)) {
+        folderTree.querySelectorAll('.drag-folder-item').forEach(el => el.classList.remove('drag-target'));
+        _stopAutoScroll();
+      }
+    });
+
+    folderTree.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      _stopAutoScroll();
+      const id = e.dataTransfer.getData('text/plain');
+      const targetEl = e.target.closest('.drag-folder-item');
+      if (id && targetEl) {
+        const targetFolderId = targetEl.dataset.id;
+        if (targetFolderId && targetFolderId !== id) {
+          BookmarkStore.move(id, targetFolderId);
+        }
+      }
+      this._hideDragZones(movePanel, deleteZone);
+    });
+  }
+
+  /** 加载并渲染文件夹树到移动面板 */
+  async _showMovePanel(movePanel, folderTree, excludeId) {
+    movePanel.classList.add('visible');
+    if (folderTree.dataset.loadedFor === excludeId) return; // 已加载，无需重复
+    folderTree.dataset.loadedFor = excludeId;
+    folderTree.innerHTML = '<div style="padding:12px 20px;font-size:12px;color:var(--text-tertiary)">加载中…</div>';
+
+    try {
+      const tree = await BookmarkStore.getTree();
+      folderTree.innerHTML = '';
+      // 从书签栏（id='1'）开始递归渲染，排除被拖拽节点及其子孙
+      this._renderDragFolderTree(tree[0]?.children || [], folderTree, 0, excludeId);
+    } catch {
+      folderTree.innerHTML = '<div style="padding:12px 20px;font-size:12px;color:var(--danger)">加载失败</div>';
+    }
+  }
+
+  /** 递归渲染文件夹树节点（跳过书签，只渲染文件夹） */
+  _renderDragFolderTree(nodes, container, depth, excludeId) {
+    for (const node of nodes) {
+      if (node.url) continue;           // 跳过书签
+      if (node.id === excludeId) continue; // 跳过被拖拽节点
+      if (node.id === '2') continue;    // 跳过"其他书签"
+
+      const item = document.createElement('div');
+      item.className = 'drag-folder-item';
+      item.dataset.id = node.id;
+      item.style.paddingLeft = `${depth * 16 + 16}px`;
+      item.innerHTML = `<span class="folder-icon">📁</span><span class="folder-name">${this._escapeHtml(node.title)}</span>`;
+      container.appendChild(item);
+
+      if (node.children?.length) {
+        this._renderDragFolderTree(node.children, container, depth + 1, excludeId);
+      }
+    }
+  }
+
+  _hideDragZones(movePanel, deleteZone) {
+    movePanel.classList.remove('visible');
+    deleteZone.classList.remove('visible', 'over');
+    const folderTree = document.getElementById('drag-folder-tree');
+    if (folderTree) {
+      folderTree.dataset.loadedFor = '';
+      folderTree._stopAutoScroll?.();
+    }
+  }
+
+  _escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
 
   bindGlobalDrag() {
     let dragCounter = 0;

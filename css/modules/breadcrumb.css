@@ -1,17 +1,19 @@
 .breadcrumb {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 8px 16px;
+  gap: 6px;
+  padding: 8px 14px;
   margin-bottom: 16px;
+  max-width: 100%;
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
-  border-radius: var(--radius-card);
+  border-radius: var(--radius-md);
   z-index: 50;
   opacity: 0;
-  transition: opacity var(--transition-base);
+  transition: opacity var(--transition-base), max-width var(--transition-base);
+  overflow: hidden;
 }
 
 .breadcrumb.visible {
@@ -19,11 +21,12 @@
 }
 
 .breadcrumb-item {
-  padding: 4px 8px;
-  border-radius: var(--radius-xs);
+  padding: 4px 10px;
+  border-radius: var(--radius-md);
   color: var(--text-secondary);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   cursor: pointer;
+  white-space: nowrap;
   transition: all var(--transition-fast);
 }
 
@@ -35,9 +38,12 @@
 .breadcrumb-item.active {
   color: var(--text-primary);
   font-weight: 500;
+  cursor: default;
 }
 
 .breadcrumb-separator {
   color: var(--text-tertiary);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
+  flex-shrink: 0;
+  user-select: none;
 }

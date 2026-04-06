@@ -5,7 +5,7 @@
   width: 100%;
   height: 100%;
   z-index: -1;
-  background: #f5f5f7;
+  background: #e8e8ed;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -17,7 +17,7 @@
   object-fit: cover;
 }
 
-/* 毛玻璃叠加 - 浅色模式 */
+/* 毛玻璃叠加 */
 .wallpaper::after {
   content: '';
   position: absolute;
@@ -27,17 +27,17 @@
   height: 100%;
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  background: rgba(0, 0, 0, 0.02);
+  background: rgba(255, 255, 255, 0.08);
   pointer-events: none;
 }
 
 /* 深色模式 */
 @media (prefers-color-scheme: dark) {
   .wallpaper {
-    background: #000000;
+    background: #2c2c2e;
   }
 
   .wallpaper::after {
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.15);
   }
 }

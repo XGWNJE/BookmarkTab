@@ -19,31 +19,6 @@ class QuickFind {
   init() {
     // 打开
     EventBus.on('toolbar:search', () => this.show());
-    EventBus.on('shortcuts:search', () => this.show());
-
-    // 键盘
-    document.addEventListener('keydown', (e) => {
-      // 快捷键打开
-      if ((e.ctrlKey && e.key === 'f') || e.key === '/') {
-        e.preventDefault();
-        this.show();
-      }
-
-      if (!this.dialog.classList.contains('hidden')) {
-        if (e.key === 'Escape') {
-          this.hide();
-        } else if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          this.selectNext();
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          this.selectPrev();
-        } else if (e.key === 'Enter') {
-          e.preventDefault();
-          this.openSelected();
-        }
-      }
-    });
 
     // 搜索
     this.input.addEventListener('input', () => {
@@ -51,6 +26,28 @@ class QuickFind {
       this.searchTimeout = setTimeout(() => {
         this.search(this.input.value);
       }, 200);
+    });
+
+    // 搜索框内部键盘事件
+    this.input.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        this.hide();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        this.selectNext();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        this.selectPrev();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        this.openSelected();
+      }
+    });
+
+    // 点击遮罩关闭
+    this.dialog.querySelector('.quick-find-overlay').addEventListener('click', () => {
+      this.hide();
     });
 
     // 点击结果

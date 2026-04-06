@@ -1,7 +1,225 @@
+/* 左下角常驻触发锚点 */
+.shortcuts-trigger {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  cursor: default;
+  z-index: 100;
+  opacity: 0.4;
+  transition: opacity var(--transition-fast);
+  user-select: none;
+}
+
+.shortcuts-trigger:hover {
+  opacity: 1;
+}
+
+/* 菜单触发按钮（快捷键按钮右侧） */
+.menu-trigger {
+  position: fixed;
+  bottom: 16px;
+  left: 46px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  font-size: 13px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  z-index: 100;
+  opacity: 0.4;
+  transition: opacity var(--transition-fast);
+  user-select: none;
+}
+
+.menu-trigger:hover,
+.menu-trigger.active {
+  opacity: 1;
+}
+
+/* 菜单面板 */
+.menu-panel {
+  position: fixed;
+  bottom: 46px;
+  left: 46px;
+  min-width: 200px;
+  padding: 12px 16px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur-strong);
+  -webkit-backdrop-filter: var(--glass-blur-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  z-index: 100;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all var(--transition-base);
+  pointer-events: none;
+}
+
+.menu-panel.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.menu-panel-title {
+  margin-bottom: 10px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.menu-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu-section-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+/* 双按钮切换组 */
+.menu-toggle-group {
+  display: flex;
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+}
+
+.menu-toggle-btn {
+  flex: 1;
+  padding: 5px 10px;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.menu-toggle-btn + .menu-toggle-btn {
+  border-left: 1px solid var(--glass-border);
+}
+
+.menu-toggle-btn:hover {
+  background: var(--glass-bg-hover);
+  color: var(--text-primary);
+}
+
+.menu-toggle-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+
 .shortcuts-hint {
   position: fixed;
-  bottom: 20px;
-  left: 20px;
+  bottom: 46px;
+  left: 16px;
+  padding: 12px 16px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  z-index: 100;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all var(--transition-base);
+  pointer-events: none;
+}
+
+.shortcuts-hint.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.shortcuts-title {
+  margin-bottom: 8px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.shortcuts-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px 16px;
+}
+
+.shortcut-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 10px;
+  color: var(--text-primary);
+}
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  cursor: default;
+  z-index: 100;
+  opacity: 0.4;
+  transition: opacity var(--transition-fast);
+  user-select: none;
+}
+
+.shortcuts-trigger:hover {
+  opacity: 1;
+}
+
+.shortcuts-hint {
+  position: fixed;
+  bottom: 46px;
+  left: 16px;
   padding: 12px 16px;
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);

@@ -11,6 +11,11 @@
   aspect-ratio: 1;
 }
 
+/* 拖拽时允许指示线溢出显示 */
+.bookmark-card[data-drop-position] {
+  overflow: visible;
+}
+
 .bookmark-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-card-hover);
@@ -41,6 +46,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  border-radius: var(--radius-card);
 }
 
 .card-icon {
@@ -62,29 +69,90 @@
 }
 
 .card-icon.favicon {
-  background-image: none;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-/* 文件夹图标 - 浅色/深色模式切换 */
-.card-icon .icon-light { display: none; }
-.card-icon .icon-dark { display: block; }
+/* 文件夹默认图标 - 填充卡片 + 文件夹造型 */
+.card-icon.folder-default {
+  background: linear-gradient(160deg, #f5ead8 0%, #e8c97a 100%);
+  overflow: hidden;
+}
+
+/* 文件夹标签（左上角凸起） */
+.card-icon.folder-default::before {
+  content: '';
+  position: absolute;
+  top: 22%;
+  left: 10%;
+  width: 32%;
+  height: 10%;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 4px 4px 0 0;
+}
+
+/* 文件夹主体 */
+.card-icon.folder-default::after {
+  content: '';
+  position: absolute;
+  top: 32%;
+  left: 10%;
+  right: 10%;
+  bottom: 18%;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 0 4px 4px 4px;
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+}
 
 @media (prefers-color-scheme: dark) {
-  .card-icon .icon-light { display: block; }
-  .card-icon .icon-dark { display: none; }
+  .card-icon.folder-default {
+    background: linear-gradient(160deg, #3d5068 0%, #243040 100%);
+  }
+
+  .card-icon.folder-default::before {
+    background: rgba(255, 255, 255, 0.18);
+  }
+
+  .card-icon.folder-default::after {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
 }
 
-/* 底部渐变遮罩 */
+/* 文件夹图标 - 深浅模式切换（SVG 已废弃，保留选择器兼容性） */
+.card-icon .icon-light { display: block; }
+.card-icon .icon-dark  { display: none; }
+
+@media (prefers-color-scheme: dark) {
+  .card-icon .icon-light { display: none; }
+  .card-icon .icon-dark  { display: block; }
+}
+
+/* 底部渐变遮罩 - 移除黑色，改用卡片底色渐变 */
 .card-gradient {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 50%;
-  background: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.6) 60%, transparent 100%);
+  height: 55%;
+  background: linear-gradient(to top,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    transparent 100%
+  );
   pointer-events: none;
-  opacity: 1;
   transition: opacity var(--transition-fast);
+}
+
+@media (prefers-color-scheme: dark) {
+  .card-gradient {
+    background: linear-gradient(to top,
+      rgba(30, 30, 32, 0.9) 0%,
+      rgba(30, 30, 32, 0.5) 50%,
+      transparent 100%
+    );
+  }
 }
 
 /* 信息区域 */
@@ -100,8 +168,8 @@
 .card-title {
   width: 100%;
   font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -110,11 +178,21 @@
 
 .card-meta {
   font-size: var(--font-size-xs);
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(0, 0, 0, 0.5);
   margin-top: 2px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+@media (prefers-color-scheme: dark) {
+  .card-title {
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  .card-meta {
+    color: rgba(255, 255, 255, 0.5);
+  }
 }
 
 /* 新建卡片占位 */
@@ -169,24 +247,36 @@
   }
 }
 
-/* 插入指示线 */
+/* 拖拽插入指示线 */
 .drop-indicator {
   position: absolute;
-  left: 0;
-  right: 0;
-  height: 3px;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
   background: var(--accent);
   border-radius: 2px;
   pointer-events: none;
   z-index: 10;
 }
 
-.drop-indicator.top {
-  top: -6px;
+.drop-indicator.left {
+  left: -6px;
 }
 
-.drop-indicator.bottom {
-  bottom: -6px;
+.drop-indicator.right {
+  right: -6px;
+}
+
+/* 拖拽悬停在文件夹上 */
+.bookmark-card.drag-over {
+  border-color: var(--accent);
+  background: rgba(99, 179, 237, 0.15);
+  transform: scale(1.05);
+}
+
+/* 拖拽中的卡片半透明 */
+.bookmark-card.is-dragging {
+  opacity: 0.4;
 }
 
 /* Favicon 加载失败时的备用图标 */
@@ -200,9 +290,97 @@
   align-items: center;
   justify-content: center;
   z-index: 1;
+  background: linear-gradient(135deg, rgba(99, 179, 237, 0.3) 0%, rgba(110, 231, 183, 0.3) 100%);
 }
 
 .favicon-fallback svg {
   width: 100%;
   height: 100%;
+}
+
+/* 首字母默认图标 */
+.favicon-initial {
+  font-size: 36px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  user-select: none;
+}
+
+/* ========== 右键菜单 ========== */
+.context-menu {
+  position: fixed;
+  min-width: 160px;
+  background: rgba(248, 248, 250, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  z-index: 2000;
+  padding: 4px 0;
+  animation: contextMenuIn 0.12s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  .context-menu {
+    background: rgba(44, 44, 48, 0.96);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.3);
+  }
+}
+
+@keyframes contextMenuIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.context-menu-item {
+  padding: 8px 16px;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.context-menu-item:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  .context-menu-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+
+.context-menu-item.danger {
+  color: var(--danger);
+}
+
+.context-menu-item.danger:hover {
+  background: rgba(255, 59, 48, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  .context-menu-item.danger:hover {
+    background: rgba(255, 59, 48, 0.15);
+  }
+}
+
+.context-menu-separator {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.08);
+  margin: 4px 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .context-menu-separator {
+    background: rgba(255, 255, 255, 0.1);
+  }
 }

@@ -61,6 +61,7 @@ class EditDialog {
     this.confirmBtn.textContent = '创建';
     this.titleInput.value = '';
     this.urlInput.value = '';
+    this.urlInput.parentElement.style.display = 'block';
     this.faviconPreview.innerHTML = '';
     this.currentId = null;
     this.currentParentId = Router.getCurrent().id;

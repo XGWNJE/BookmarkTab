@@ -36,10 +36,6 @@ class Toolbar {
     document.getElementById('btn-search').addEventListener('click', () => {
       EventBus.emit('toolbar:search');
     });
-
-    document.getElementById('btn-settings').addEventListener('click', () => {
-      EventBus.emit('toolbar:settings');
-    });
   }
 
   show() {

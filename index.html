@@ -26,9 +26,6 @@
         <span class="toolbar-icon">🔍</span>
         <span class="toolbar-label">快速查找</span>
       </button>
-      <button id="btn-settings" class="toolbar-btn" title="设置">
-        <span class="toolbar-icon">⚙</span>
-      </button>
     </header>
 
     <!-- 书签内容区（卡片网格） -->
@@ -37,11 +34,29 @@
       <nav id="breadcrumb" class="breadcrumb">
         <span class="breadcrumb-item" data-id="1">书签栏</span>
       </nav>
-      <div id="bookmark-grid" class="bookmark-grid"></div>
+      <!-- 网格滚动区 -->
+      <div class="grid-scroll">
+        <div class="grid-scroll-inner">
+          <div id="bookmark-grid" class="bookmark-grid"></div>
+        </div>
+      </div>
     </main>
 
+    <!-- 拖拽：左侧移动面板 -->
+    <div id="drag-move-panel" class="drag-side-panel drag-move-panel">
+      <div class="drag-panel-header">移动到…</div>
+      <div id="drag-folder-tree" class="drag-folder-tree"></div>
+    </div>
+
+    <!-- 拖拽：右侧删除区域 -->
+    <div id="drag-delete-zone" class="drag-delete-zone">
+      <div class="drag-delete-icon">🗑</div>
+      <div class="drag-delete-label">松手删除</div>
+    </div>
+
     <!-- 快捷键提示（左下角悬停气泡） -->
-    <div id="shortcuts-hint" class="shortcuts-hint hidden">
+    <div id="shortcuts-trigger" class="shortcuts-trigger" title="快捷键">?</div>
+    <div id="shortcuts-hint" class="shortcuts-hint">
       <div class="shortcuts-title">快捷键</div>
       <div class="shortcuts-list">
         <div class="shortcut-item"><kbd>N</kbd> 新建书签</div>
@@ -53,7 +68,20 @@
         <div class="shortcut-item"><kbd>Delete</kbd> 删除选中项</div>
         <div class="shortcut-item"><kbd>F2</kbd> 编辑选中项</div>
         <div class="shortcut-item"><kbd>Ctrl+Click</kbd> 多选</div>
-        <div class="shortcut-item"><kbd>G</kbd> 切换视图</div>
+        <div class="shortcut-item"><kbd>=</kbd> / <kbd>-</kbd> 放大 / 缩小卡片</div>
+      </div>
+    </div>
+
+    <!-- 菜单按钮（左下角，快捷键按钮右侧） -->
+    <div id="menu-trigger" class="menu-trigger" title="设置">≡</div>
+    <div id="menu-panel" class="menu-panel">
+      <div class="menu-panel-title">设置</div>
+      <div class="menu-section">
+        <div class="menu-section-label">书签跳转方式</div>
+        <div class="menu-toggle-group" id="open-mode-group">
+          <button class="menu-toggle-btn" data-value="new" id="open-mode-new">新标签页</button>
+          <button class="menu-toggle-btn" data-value="current" id="open-mode-current">当前页</button>
+        </div>
       </div>
     </div>
 
@@ -110,33 +138,7 @@
       </div>
     </div>
 
-    <!-- 设置面板 -->
-    <div id="settings-panel" class="settings-panel hidden">
-      <div class="settings-overlay"></div>
-      <div class="settings-content">
-        <div class="settings-header">
-          <h3>设置</h3>
-          <button class="settings-close" data-action="close">&times;</button>
-        </div>
-        <div class="settings-body">
-          <div class="settings-section">
-            <h4>视图模式</h4>
-            <div class="settings-options">
-              <button class="settings-option active" data-view="grid">
-                <span class="option-icon">▦</span> 网格
-              </button>
-              <button class="settings-option" data-view="list">
-                <span class="option-icon">☰</span> 列表
-              </button>
-            </div>
-          </div>
-          <div class="settings-section">
-            <h4>壁纸</h4>
-            <div id="wallpaper-grid" class="wallpaper-grid"></div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- TODO: 设置面板 - 壁纸系统后续重构 -->
   </div>
 
   <script type="module" src="main.js"></script>

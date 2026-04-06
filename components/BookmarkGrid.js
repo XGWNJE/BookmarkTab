@@ -11,7 +11,6 @@ class BookmarkGrid {
     this.grid = document.getElementById('bookmark-grid');
     this.cards = new Map();
     this.selectedCards = new Set();
-    this.viewMode = 'grid'; // 'grid' | 'list'
     this.isLoading = false;
     this.isRefreshingFavicons = false;
     this.faviconRefreshTimeout = null;
@@ -57,8 +56,36 @@ class BookmarkGrid {
       }
     });
 
-    EventBus.on('card:drop', async ({ draggedId, targetId }) => {
-      await BookmarkStore.move(draggedId, targetId);
+    EventBus.on('card:drop', async ({ draggedId, targetId, action, position }) => {
+      if (action === 'into') {
+        // 拖入文件夹
+        await BookmarkStore.move(draggedId, targetId);
+      } else if (action === 'reorder') {
+        // 同级排序：获取目标的实际位置
+        try {
+          const [targetNodes] = await Promise.all([
+            chrome.bookmarks.get(targetId)
+          ]);
+          const targetNode = targetNodes[0];
+          const [draggedNodes] = await Promise.all([
+            chrome.bookmarks.get(draggedId)
+          ]);
+          const draggedNode = draggedNodes[0];
+
+          let newIndex = targetNode.index;
+          if (position === 'after') {
+            newIndex = targetNode.index + 1;
+          }
+          // 如果在同一个父文件夹中，且拖拽源在目标之前，需要调整索引
+          if (draggedNode.parentId === targetNode.parentId && draggedNode.index < targetNode.index) {
+            newIndex = Math.max(0, newIndex - 1);
+          }
+
+          await BookmarkStore.move(draggedId, targetNode.parentId, newIndex);
+        } catch (err) {
+          console.error('Reorder failed:', err);
+        }
+      }
     });
 
     // 新建书签
@@ -84,25 +111,36 @@ class BookmarkGrid {
     this.cards.clear();
     this.selectedCards.clear();
 
-    // 获取数据
-    const children = await BookmarkStore.getChildren(folderId);
+    try {
+      // 获取数据
+      const children = await BookmarkStore.getChildren(folderId);
 
-    // 渲染
-    if (children.length === 0) {
-      this.renderEmpty();
-    } else {
-      for (let index = 0; index < children.length; index++) {
-        const child = children[index];
-        const card = new BookmarkCard(child, this.grid);
-        const element = await card.render();
-        element.style.animationDelay = `${index * 30}ms`;
-        element.classList.add('loaded');
-        this.grid.appendChild(element);
-        this.cards.set(child.id, card);
+      // 渲染
+      if (children.length === 0) {
+        this.renderEmpty();
+      } else {
+        for (let index = 0; index < children.length; index++) {
+          const child = children[index];
+          const card = new BookmarkCard(child, this.grid);
+          const element = await card.render();
+          element.style.animationDelay = `${index * 30}ms`;
+          element.classList.add('loaded');
+          this.grid.appendChild(element);
+          this.cards.set(child.id, card);
+        }
+      }
+    } catch (err) {
+      console.error('loadFolder failed:', err);
+    } finally {
+      this.isLoading = false;
+      // 如果加载期间有挂起的 refresh 请求，执行它
+      if (this._pendingRefreshId) {
+        const pendingId = this._pendingRefreshId;
+        this._pendingRefreshId = null;
+        await this.loadFolder(pendingId);
+        return;
       }
     }
-
-    this.isLoading = false;
 
     // 导航变化后刷新缺失的 favicon
     this.scheduleFaviconRefresh();
@@ -135,43 +173,43 @@ class BookmarkGrid {
 
     const cards = Array.from(this.cards.values()).filter(card => !card.isFolder);
 
-    // 并行获取所有缺失的 favicon
-    const promises = cards
-      .filter(card => {
-        const iconEl = card.element?.querySelector('.card-icon');
-        if (!iconEl) return false;
-        const currentBg = iconEl.style.backgroundImage;
-        // 如果已有缓存的 favicon 或正在加载中，跳过
-        if (BookmarkStore.getFavicon(card.data.url)) {
-          return false;
-        }
-        return !currentBg || currentBg === 'none';
-      })
-      .map(async (card) => {
-        const iconEl = card.element?.querySelector('.card-icon');
-        const fallbackEl = iconEl?.querySelector('.favicon-fallback');
-        if (!iconEl) return;
+    // 筛选需要获取 favicon 的卡片
+    const needFetch = cards.filter(card => {
+      // 已有自定义图标，跳过
+      if (BookmarkStore.getCustomIcon(card.data.id)) return false;
+      // 已有缓存，跳过
+      if (BookmarkStore.getFavicon(card.data.url)) return false;
+      // 已确认失败，跳过
+      if (BookmarkStore.isFaviconFailed(card.data.url)) return false;
+      return true;
+    });
 
+    // 分批并行获取（每批 5 个，避免同时请求过多）
+    const batchSize = 5;
+    for (let i = 0; i < needFetch.length; i += batchSize) {
+      const batch = needFetch.slice(i, i + batchSize);
+      await Promise.all(batch.map(async (card) => {
         const faviconUrl = await BookmarkStore.fetchFavicon(card.data.url);
-        if (faviconUrl && iconEl) {
-          iconEl.style.backgroundImage = `url(${faviconUrl})`;
-          // 获取成功后隐藏 fallback 图标
-          if (fallbackEl) {
-            fallbackEl.style.display = 'none';
-          }
+        if (faviconUrl) {
+          card.updateIcon(faviconUrl);
         }
-      });
+      }));
+    }
 
-    // 并行执行所有获取任务
-    await Promise.all(promises);
     this.isRefreshingFavicons = false;
   }
 
   async refresh() {
     const current = Router.getCurrent();
-    if (current) {
-      await this.loadFolder(current.id);
+    if (!current) return;
+
+    // 如果正在加载，等待当前加载完成后重新加载
+    if (this.isLoading) {
+      this._pendingRefreshId = current.id;
+      return;
     }
+
+    await this.loadFolder(current.id);
   }
 
   renderEmpty() {
@@ -219,11 +257,6 @@ class BookmarkGrid {
       this.cards.delete(id);
       this.selectedCards.delete(id);
     }, 1000);
-  }
-
-  setViewMode(mode) {
-    this.viewMode = mode;
-    this.grid.classList.toggle('list-view', mode === 'list');
   }
 
   clearSelection() {

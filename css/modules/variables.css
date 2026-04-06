@@ -20,10 +20,11 @@
   --success: rgba(52, 199, 89, 0.85);
   --success-hover: rgba(52, 199, 89, 1);
 
-  /* 间距 */
-  --radius-card: 24px;
-  --radius-sm: 8px;
-  --radius-xs: 4px;
+  /* 圆角规范 */
+  --radius-card: calc(var(--card-size) * 0.2); /* 卡片：随尺寸等比 */
+  --radius-md: 12px;   /* 面包屑、对话框、菜单等中等容器 */
+  --radius-sm: 8px;    /* 按钮、输入框等小元素 */
+  --radius-xs: 4px;    /* 标签、徽章等最小元素 */
   --gap: 16px;
   --card-size: 120px;
 

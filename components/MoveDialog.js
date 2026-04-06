@@ -1,6 +1,7 @@
 /**
  * MoveDialog - 移动书签目标选择弹窗
  */
+import EventBus from '../core/EventBus.js';
 import BookmarkStore from '../core/BookmarkStore.js';
 
 class MoveDialog {
@@ -35,6 +36,9 @@ class MoveDialog {
         }
       }
     });
+
+    // 监听右键菜单"移动到..."事件
+    EventBus.on('card:move', ({ id }) => this.show(id));
   }
 
   async show(id) {

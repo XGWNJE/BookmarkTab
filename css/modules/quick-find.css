@@ -32,7 +32,7 @@
   max-width: 560px;
   background: rgba(30, 30, 50, 0.98);
   border: 1px solid var(--glass-border);
-  border-radius: var(--radius-card);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-dialog);
   overflow: hidden;
   animation: slideDown 0.15s ease;

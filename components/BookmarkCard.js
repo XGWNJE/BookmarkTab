@@ -4,6 +4,29 @@
 import EventBus from '../core/EventBus.js';
 import BookmarkStore from '../core/BookmarkStore.js';
 
+/** 判断存储值是否为原始 SVG 文本 */
+const isSvgRaw = (val) => typeof val === 'string' && val.trimStart().startsWith('<');
+
+/** 将原始 SVG 文本应用到容器元素（注入 DOM，绕过 CSP） */
+function applySvgToElement(el, svgText) {
+  el.style.backgroundImage = '';
+  el.style.backgroundSize = '';
+  el.innerHTML = svgText;
+  const svgEl = el.querySelector('svg');
+  if (svgEl) {
+    svgEl.style.cssText = 'width:100%;height:100%;display:block;';
+  }
+}
+
+/** 将 background-image 图标应用到容器元素 */
+function applyImageToElement(el, url) {
+  el.innerHTML = '';
+  el.style.backgroundImage = `url(${url})`;
+  el.style.backgroundSize = 'cover';
+  el.style.backgroundPosition = 'center';
+  el.style.backgroundRepeat = 'no-repeat';
+}
+
 class BookmarkCard {
   constructor(data, container) {
     this.data = data;
@@ -12,6 +35,7 @@ class BookmarkCard {
     this.isFolder = !data.url;
     this.selected = false;
     this.dragOver = false;
+    this.isEditing = false;
   }
 
   async render() {
@@ -35,79 +59,38 @@ class BookmarkCard {
 
     if (this.isFolder) {
       icon.classList.add('folder');
-      // 果味高光玻璃 (Light Mode) + 全息镭射 (Dark Mode)
-      icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-        <!-- 果味高光玻璃 (Light Mode) -->
-        <g class="icon-light">
-          <defs>
-            <linearGradient id="mac_glass" x1="8" y1="20" x2="56" y2="52" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#ffffff" stop-opacity="0.8"/>
-              <stop offset="40%" stop-color="#ffffff" stop-opacity="0.2"/>
-              <stop offset="100%" stop-color="#ffffff" stop-opacity="0.5"/>
-            </linearGradient>
-            <linearGradient id="mac_border" x1="8" y1="20" x2="56" y2="52" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
-              <stop offset="100%" stop-color="#ffffff" stop-opacity="0.1"/>
-            </linearGradient>
-            <filter id="mac_shadow" x="-10%" y="-10%" width="120%" height="120%">
-              <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.1"/>
-            </filter>
-          </defs>
-          <path d="M9 16C9 13.7909 10.7909 12 13 12H25.5L29 16H51C53.2091 16 55 17.7909 55 20V48C55 50.2091 53.2091 52 51 52H13C10.7909 52 9 50.2091 9 48V16Z" fill="#ffffff" fill-opacity="0.4"/>
-          <rect x="14" y="18" width="36" height="30" rx="2" fill="#ffffff" fill-opacity="0.8"/>
-          <path d="M8 24C8 21.7909 9.79086 20 12 20H52C54.2091 20 56 21.7909 56 24V48C56 50.2091 54.2091 52 52 52H12C9.79086 52 8 50.2091 8 48V24Z" fill="url(#mac_glass)" filter="url(#mac_shadow)"/>
-          <path d="M8.5 24C8.5 22.067 10.067 20.5 12 20.5H52C53.933 20.5 55.5 22.067 55.5 24V48C55.5 49.933 53.933 51.5 52 51.5H12C10.067 51.5 8.5 49.933 8.5 48V24Z" stroke="url(#mac_border)" stroke-width="1.5"/>
-        </g>
-        <!-- 全息镭射 (Dark Mode) -->
-        <g class="icon-dark">
-          <defs>
-            <linearGradient id="holo_glass" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#FF9A9E" stop-opacity="0.6"/>
-              <stop offset="50%" stop-color="#FECFEF" stop-opacity="0.2"/>
-              <stop offset="100%" stop-color="#A1C4FD" stop-opacity="0.6"/>
-            </linearGradient>
-            <linearGradient id="holo_border" x1="0" y1="20" x2="64" y2="52">
-              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.8"/>
-              <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.1"/>
-            </linearGradient>
-          </defs>
-          <path d="M10 15C10 13.3431 11.3431 12 13 12H25L28 15H51C52.6569 15 54 16.3431 54 18V48C54 49.6569 52.6569 51 51 51H13C11.3431 51 10 49.6569 10 48V15Z" fill="#ffffff" fill-opacity="0.15"/>
-          <circle cx="32" cy="36" r="12" fill="#A1C4FD" fill-opacity="0.4" filter="blur(4px)"/>
-          <path d="M9 23C9 21.3431 10.3431 20 12 20H52C53.6569 20 55 21.3431 55 23V48C55 49.6569 53.6569 51 52 51H12C10.3431 51 9 49.6569 9 48V23Z" fill="url(#holo_glass)"/>
-          <path d="M9.5 23C9.5 21.6193 10.6193 20.5 12 20.5H52C53.3807 20.5 54.5 21.6193 54.5 23V48C54.5 49.3807 53.3807 50.5 52 50.5H12C10.6193 50.5 9.5 49.3807 9.5 48V23Z" stroke="url(#holo_border)" stroke-width="1"/>
-          <line x1="16" y1="28" x2="30" y2="28" stroke="#ffffff" stroke-opacity="0.6" stroke-width="2" stroke-linecap="round"/>
-        </g>
-      </svg>`;
+      const customIcon = BookmarkStore.getCustomIcon(this.data.id);
+      if (customIcon) {
+        if (isSvgRaw(customIcon)) {
+          applySvgToElement(icon, customIcon);
+        } else {
+          applyImageToElement(icon, customIcon);
+        }
+      } else {
+        icon.classList.add('folder-default');
+      }
     } else {
       icon.classList.add('favicon');
-      // 先尝试使用缓存的 favicon
-      const cachedFavicon = BookmarkStore.getFavicon(this.data.url);
-      if (cachedFavicon) {
-        icon.style.backgroundImage = `url(${cachedFavicon})`;
+
+      const customIcon = BookmarkStore.getCustomIcon(this.data.id);
+      const cachedFavicon = customIcon ? null : BookmarkStore.getFavicon(this.data.url);
+      const iconData = customIcon || cachedFavicon;
+
+      if (iconData) {
+        if (isSvgRaw(iconData)) {
+          applySvgToElement(icon, iconData);
+        } else {
+          icon.style.backgroundImage = `url(${iconData})`;
+        }
       }
-      // 备用图标容器
+
+      // 备用图标（favicon 未加载时显示首字母）
       const fallbackIcon = document.createElement('div');
       fallbackIcon.className = 'favicon-fallback';
-      fallbackIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-        <defs>
-          <linearGradient id="fallback_grad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#6ee7b7" stop-opacity="0.9"/>
-            <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.9"/>
-          </linearGradient>
-        </defs>
-        <path d="M32 12L16 20V44C16 46.2091 17.7909 48 20 48H44C46.2091 48 48 46.2091 48 44V20L32 12Z" fill="url(#fallback_grad)" stroke="rgba(255,255,255,0.6)" stroke-width="2" stroke-linejoin="round"/>
-        <circle cx="32" cy="34" r="6" fill="rgba(255,255,255,0.9)"/>
-        <path d="M32 40V44" stroke="rgba(255,255,255,0.9)" stroke-width="2" stroke-linecap="round"/>
-      </svg>`;
-      fallbackIcon.style.display = cachedFavicon ? 'none' : 'flex';
+      const initial = (this.data.title || '?').charAt(0).toUpperCase();
+      fallbackIcon.innerHTML = `<div class="favicon-initial">${this.escapeHtml(initial)}</div>`;
+      fallbackIcon.style.display = iconData ? 'none' : 'flex';
       icon.appendChild(fallbackIcon);
-      // 如果缓存加载失败，显示备用图标
-      icon.onerror = () => {
-        if (cachedFavicon) {
-          icon.style.backgroundImage = 'none';
-          fallbackIcon.style.display = 'flex';
-        }
-      };
     }
 
     iconWrapper.appendChild(icon);
@@ -128,7 +111,6 @@ class BookmarkCard {
     const meta = document.createElement('div');
     meta.className = 'card-meta';
     if (this.isFolder) {
-      // 异步获取子项数量
       const children = await BookmarkStore.getChildren(this.data.id);
       meta.textContent = `${children.length} 项`;
     } else {
@@ -142,7 +124,6 @@ class BookmarkCard {
     this.element.appendChild(gradient);
     this.element.appendChild(info);
 
-    // 事件绑定
     this.bindEvents();
 
     return this.element;
@@ -156,11 +137,17 @@ class BookmarkCard {
     }
   }
 
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   bindEvents() {
     // 点击打开
     this.element.addEventListener('click', (e) => {
+      if (this.isEditing) return;
       if (e.ctrlKey || e.metaKey) {
-        // 多选
         this.toggleSelect();
       } else {
         this.open();
@@ -168,7 +155,7 @@ class BookmarkCard {
     });
 
     // 双击编辑标题
-    this.element.addEventListener('dblclick', (e) => {
+    this.element.addEventListener('dblclick', () => {
       if (!this.isFolder) {
         const titleEl = this.element.querySelector('.card-title');
         this.startEdit(titleEl);
@@ -180,33 +167,82 @@ class BookmarkCard {
       this.element.classList.add('is-dragging');
       e.dataTransfer.setData('text/plain', this.data.id);
       e.dataTransfer.effectAllowed = 'move';
+      EventBus.emit('card:dragstart', { id: this.data.id, isFolder: this.isFolder });
     });
 
     this.element.addEventListener('dragend', () => {
       this.element.classList.remove('is-dragging');
       this.element.classList.remove('drag-over');
+      EventBus.emit('card:dragend', { id: this.data.id });
     });
 
     this.element.addEventListener('dragover', (e) => {
       e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+
+      const draggedId = e.dataTransfer.types.includes('text/plain') ? true : false;
+      if (!draggedId) return;
+
+      this.clearDropIndicator();
+
       if (this.isFolder) {
-        this.element.classList.add('drag-over');
-        e.dataTransfer.dropEffect = 'move';
+        const rect = this.element.getBoundingClientRect();
+        const y = e.clientY - rect.top;
+        const zone = y / rect.height;
+
+        if (zone < 0.25) {
+          this.showDropIndicator('before');
+        } else if (zone > 0.75) {
+          this.showDropIndicator('after');
+        } else {
+          this.element.classList.add('drag-over');
+        }
+      } else {
+        const rect = this.element.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const half = x / rect.width;
+
+        if (half < 0.5) {
+          this.showDropIndicator('before');
+        } else {
+          this.showDropIndicator('after');
+        }
       }
     });
 
-    this.element.addEventListener('dragleave', () => {
-      this.element.classList.remove('drag-over');
+    this.element.addEventListener('dragleave', (e) => {
+      if (!this.element.contains(e.relatedTarget)) {
+        this.element.classList.remove('drag-over');
+        this.clearDropIndicator();
+      }
     });
 
     this.element.addEventListener('drop', (e) => {
       e.preventDefault();
-      this.element.classList.remove('drag-over');
+      e.stopPropagation();
       const draggedId = e.dataTransfer.getData('text/plain');
-      if (this.isFolder && draggedId !== this.data.id) {
+      if (!draggedId || draggedId === this.data.id) {
+        this.clearDropIndicator();
+        this.element.classList.remove('drag-over');
+        return;
+      }
+
+      const dropPosition = this.element.dataset.dropPosition;
+      this.clearDropIndicator();
+      this.element.classList.remove('drag-over');
+
+      if (this.isFolder && !dropPosition) {
         EventBus.emit('card:drop', {
           draggedId,
-          targetId: this.data.id
+          targetId: this.data.id,
+          action: 'into'
+        });
+      } else {
+        EventBus.emit('card:drop', {
+          draggedId,
+          targetId: this.data.id,
+          action: 'reorder',
+          position: dropPosition || 'after'
         });
       }
     });
@@ -222,14 +258,39 @@ class BookmarkCard {
         this.startEdit(titleEl);
       }
     });
+
+    // 右键菜单
+    this.element.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      this.showContextMenu(e.clientX, e.clientY);
+    });
   }
 
   open() {
     if (this.isFolder) {
       EventBus.emit('card:openFolder', { id: this.data.id, title: this.data.title });
     } else {
-      chrome.tabs.create({ url: this.data.url, active: false });
+      const openInCurrent = localStorage.getItem('openMode') === 'current';
+      if (openInCurrent) {
+        chrome.tabs.update({ url: this.data.url });
+      } else {
+        chrome.tabs.create({ url: this.data.url, active: false });
+      }
     }
+  }
+
+  showDropIndicator(position) {
+    this.clearDropIndicator();
+    this.element.dataset.dropPosition = position;
+    const indicator = document.createElement('div');
+    indicator.className = `drop-indicator ${position === 'before' ? 'left' : 'right'}`;
+    this.element.appendChild(indicator);
+  }
+
+  clearDropIndicator() {
+    delete this.element.dataset.dropPosition;
+    this.element.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+    this.element.classList.remove('drag-over');
   }
 
   toggleSelect() {
@@ -242,10 +303,10 @@ class BookmarkCard {
   }
 
   startEdit(titleEl) {
+    this.isEditing = true;
     titleEl.contentEditable = 'true';
     titleEl.focus();
 
-    // 选中所有文本
     const range = document.createRange();
     range.selectNodeContents(titleEl);
     const sel = window.getSelection();
@@ -253,6 +314,7 @@ class BookmarkCard {
     sel.addRange(range);
 
     const finishEdit = async () => {
+      this.isEditing = false;
       titleEl.contentEditable = 'false';
       const newTitle = titleEl.textContent.trim();
       if (newTitle && newTitle !== this.data.title) {
@@ -266,6 +328,7 @@ class BookmarkCard {
 
     titleEl.addEventListener('blur', finishEdit, { once: true });
     titleEl.addEventListener('keydown', (e) => {
+      e.stopPropagation();
       if (e.key === 'Enter') {
         e.preventDefault();
         titleEl.blur();
@@ -294,6 +357,312 @@ class BookmarkCard {
 
   animateCreate() {
     this.element.classList.add('adding');
+  }
+
+  // ========== 右键菜单 ==========
+
+  showContextMenu(x, y) {
+    document.querySelectorAll('.context-menu').forEach(el => el.remove());
+
+    const menu = document.createElement('div');
+    menu.className = 'context-menu';
+
+    const hasCustomIcon = BookmarkStore.getCustomIcon(this.data.id);
+
+    const items = [
+      {
+        label: '重命名',
+        action: () => {
+          const titleEl = this.element.querySelector('.card-title');
+          this.startEdit(titleEl);
+        }
+      },
+      {
+        label: hasCustomIcon ? '更换图标...' : '自定义图标...',
+        action: () => this.pickCustomIcon(x, y)
+      },
+    ];
+
+    if (hasCustomIcon) {
+      items.push({
+        label: '恢复默认图标',
+        action: () => this.removeCustomIcon()
+      });
+    }
+
+    items.forEach(item => {
+      if (item.type === 'separator') {
+        const sep = document.createElement('div');
+        sep.className = 'context-menu-separator';
+        menu.appendChild(sep);
+      } else {
+        const menuItem = document.createElement('div');
+        menuItem.className = `context-menu-item ${item.className || ''}`;
+        menuItem.textContent = item.label;
+        menuItem.addEventListener('click', (e) => {
+          e.stopPropagation();
+          menu.remove();
+          item.action();
+        });
+        menu.appendChild(menuItem);
+      }
+    });
+
+    menu.style.left = `${x}px`;
+    menu.style.top = `${y}px`;
+    document.body.appendChild(menu);
+
+    requestAnimationFrame(() => {
+      const rect = menu.getBoundingClientRect();
+      if (rect.right > window.innerWidth) {
+        menu.style.left = `${window.innerWidth - rect.width - 8}px`;
+      }
+      if (rect.bottom > window.innerHeight) {
+        menu.style.top = `${window.innerHeight - rect.height - 8}px`;
+      }
+    });
+
+    const closeMenu = (e) => {
+      if (!menu.contains(e.target)) {
+        menu.remove();
+        document.removeEventListener('click', closeMenu);
+        document.removeEventListener('contextmenu', closeMenu);
+      }
+    };
+    setTimeout(() => {
+      document.addEventListener('click', closeMenu);
+      document.addEventListener('contextmenu', closeMenu);
+    }, 0);
+  }
+
+  /**
+   * 选择自定义图标
+   * 弹出选择方式：文件选择 或 粘贴 SVG 代码
+   */
+  pickCustomIcon(x = 0, y = 0) {
+    // 弹出选择方式菜单
+    const picker = document.createElement('div');
+    picker.className = 'context-menu';
+    picker.innerHTML = `
+      <div class="context-menu-item" data-action="file">从文件选择</div>
+      <div class="context-menu-item" data-action="svg">粘贴 SVG 代码</div>
+    `;
+
+    picker.style.cssText = `position:fixed;left:${x}px;top:${y}px;z-index:3000;`;
+    document.body.appendChild(picker);
+
+    requestAnimationFrame(() => {
+      const pr = picker.getBoundingClientRect();
+      if (pr.right > window.innerWidth)  picker.style.left = `${window.innerWidth - pr.width - 8}px`;
+      if (pr.bottom > window.innerHeight) picker.style.top = `${window.innerHeight - pr.height - 8}px`;
+    });
+
+    const close = () => picker.remove();
+
+    picker.addEventListener('click', (e) => {
+      const action = e.target.closest('[data-action]')?.dataset.action;
+      close();
+      if (action === 'file') this._pickFromFile();
+      else if (action === 'svg') this.showSvgPasteDialog();
+    });
+
+    setTimeout(() => document.addEventListener('click', close, { once: true }), 0);
+  }
+
+  /** 从文件选择图标 */
+  _pickFromFile() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/svg+xml,image/png,image/jpeg,image/webp,image/gif,image/avif,image/x-icon';
+
+    input.addEventListener('change', () => {
+      const file = input.files[0];
+      if (!file) return;
+      if (file.size > 1024 * 1024) { console.warn('Icon file too large (max 1MB)'); return; }
+
+      if (file.type === 'image/svg+xml') {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const svgText = this.sanitizeSvg(reader.result);
+          if (!svgText) return;
+          BookmarkStore.setCustomIcon(this.data.id, svgText);
+          this.updateIcon(svgText);
+        };
+        reader.readAsText(file);
+      } else {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const size = 256;
+            canvas.width = size; canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            const scale = Math.min(size / img.width, size / img.height);
+            const w = img.width * scale, h = img.height * scale;
+            ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+            const dataUrl = canvas.toDataURL('image/png');
+            BookmarkStore.setCustomIcon(this.data.id, dataUrl);
+            this.updateIcon(dataUrl);
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    input.click();
+  }
+
+  /** 显示 SVG 代码粘贴对话框 */
+  showSvgPasteDialog() {
+    const overlay = document.createElement('div');
+    overlay.className = 'dialog';
+    overlay.innerHTML = `
+      <div class="dialog-overlay"></div>
+      <div class="dialog-content svg-paste-dialog">
+        <div class="dialog-header">
+          <h3>粘贴 SVG 代码</h3>
+          <button class="dialog-close" data-action="close">&times;</button>
+        </div>
+        <div class="dialog-body">
+          <textarea class="svg-paste-input form-input" rows="8"
+            placeholder="将 SVG 代码粘贴到此处…&#10;&#10;<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot;>&#10;  ...&#10;</svg>"
+            spellcheck="false" style="font-family:monospace;font-size:12px;resize:vertical;"></textarea>
+          <div class="svg-paste-preview"></div>
+        </div>
+        <div class="dialog-footer">
+          <button class="btn btn-secondary" data-action="cancel">取消</button>
+          <button class="btn btn-primary" data-action="confirm" disabled>应用</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const textarea = overlay.querySelector('.svg-paste-input');
+    const preview  = overlay.querySelector('.svg-paste-preview');
+    const confirmBtn = overlay.querySelector('[data-action="confirm"]');
+
+    textarea.addEventListener('input', () => {
+      const clean = this.sanitizeSvg(textarea.value.trim());
+      if (clean) {
+        preview.innerHTML = clean;
+        const svgEl = preview.querySelector('svg');
+        if (svgEl) svgEl.style.cssText = 'width:100%;height:100%;display:block;';
+        confirmBtn.disabled = false;
+      } else {
+        preview.innerHTML = '';
+        confirmBtn.disabled = true;
+      }
+    });
+
+    overlay.addEventListener('click', (e) => {
+      const action = e.target.closest('[data-action]')?.dataset.action;
+      if (!action) return;
+      if (action === 'confirm') {
+        const clean = this.sanitizeSvg(textarea.value.trim());
+        if (clean) {
+          BookmarkStore.setCustomIcon(this.data.id, clean);
+          this.updateIcon(clean);
+        }
+      }
+      overlay.remove();
+    });
+
+    setTimeout(() => textarea.focus(), 50);
+  }
+
+  /**
+   * 清理 SVG：去除 script、on* 事件、外部链接等安全风险
+   * @returns {string|null} 清理后的 SVG，非法输入返回 null
+   */
+  sanitizeSvg(raw) {
+    if (!raw || !raw.trimStart().startsWith('<')) return null;
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(raw, 'image/svg+xml');
+      // DOMParser 解析失败时会返回一个包含 <parsererror> 的文档
+      if (doc.querySelector('parsererror')) return null;
+      const svgEl = doc.querySelector('svg');
+      if (!svgEl) return null;
+
+      // 移除危险元素
+      svgEl.querySelectorAll('script, iframe, foreignObject').forEach(el => el.remove());
+      // 移除 on* 事件属性和危险链接
+      svgEl.querySelectorAll('*').forEach(el => {
+        [...el.attributes].forEach(attr => {
+          if (/^on/i.test(attr.name)) el.removeAttribute(attr.name);
+          if (attr.name === 'href' && /^(javascript|data)/i.test(attr.value)) el.removeAttribute(attr.name);
+        });
+      });
+
+      return svgEl.outerHTML;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * 移除自定义图标，恢复默认
+   */
+  removeCustomIcon() {
+    BookmarkStore.removeCustomIcon(this.data.id);
+    if (this.isFolder) {
+      // 文件夹：恢复默认 SVG
+      this.updateIcon(null);
+    } else {
+      // 书签：恢复 favicon 或首字母
+      const cachedFavicon = BookmarkStore.getFavicon(this.data.url);
+      this.updateIcon(cachedFavicon || null);
+    }
+  }
+
+  /**
+   * 更新卡片图标显示
+   * @param {string|null} iconData - 原始 SVG 文本 / data URL / null（恢复默认）
+   */
+  updateIcon(iconData) {
+    const iconEl = this.element.querySelector('.card-icon');
+    if (!iconEl) return;
+
+    if (this.isFolder) {
+      if (iconData) {
+        iconEl.classList.remove('folder-default');
+        if (isSvgRaw(iconData)) {
+          applySvgToElement(iconEl, iconData);
+        } else {
+          applyImageToElement(iconEl, iconData);
+        }
+      } else {
+        // 恢复默认 CSS 色块
+        iconEl.innerHTML = '';
+        iconEl.style.backgroundImage = '';
+        iconEl.style.backgroundSize = '';
+        iconEl.classList.add('folder-default');
+      }
+    } else {
+      const fallbackEl = iconEl.querySelector('.favicon-fallback');
+      if (iconData) {
+        if (isSvgRaw(iconData)) {
+          applySvgToElement(iconEl, iconData);
+          // SVG 注入后 fallback 被清除，不需要额外隐藏
+        } else {
+          iconEl.style.backgroundImage = `url(${iconData})`;
+          if (fallbackEl) fallbackEl.style.display = 'none';
+        }
+      } else {
+        iconEl.innerHTML = '';
+        iconEl.style.backgroundImage = 'none';
+        // 重新创建 fallback（SVG 注入时会被清除）
+        const fb = document.createElement('div');
+        fb.className = 'favicon-fallback';
+        const initial = (this.data.title || '?').charAt(0).toUpperCase();
+        fb.innerHTML = `<div class="favicon-initial">${this.escapeHtml(initial)}</div>`;
+        fb.style.display = 'flex';
+        iconEl.appendChild(fb);
+      }
+    }
   }
 
   animateDelete() {
