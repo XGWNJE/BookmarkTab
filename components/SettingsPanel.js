@@ -1,14 +1,13 @@
 /**
- * SettingsPanel - 设置面板（壁纸、视图偏好）
+ * SettingsPanel - 设置面板（壁纸偏好）
+ * TODO: 壁纸系统后续重构
  */
 import EventBus from '../core/EventBus.js';
-import BookmarkStore from '../core/BookmarkStore.js';
 
 class SettingsPanel {
   constructor() {
     this.panel = document.getElementById('settings-panel');
     this.wallpaperGrid = document.getElementById('wallpaper-grid');
-    this.viewMode = 'grid';
 
     // 默认壁纸
     this.wallpapers = [
@@ -35,14 +34,6 @@ class SettingsPanel {
 
     this.panel.querySelector('.settings-close').addEventListener('click', () => {
       this.hide();
-    });
-
-    // 视图切换
-    this.panel.querySelectorAll('.settings-option').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const view = btn.dataset.view;
-        this.setViewMode(view);
-      });
     });
 
     // 渲染壁纸
@@ -98,18 +89,6 @@ class SettingsPanel {
     this.wallpaperGrid.querySelectorAll('.wallpaper-item').forEach(item => {
       item.classList.toggle('active', item.dataset.id === id);
     });
-  }
-
-  setViewMode(mode) {
-    this.viewMode = mode;
-
-    // 更新 UI
-    this.panel.querySelectorAll('.settings-option').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.view === mode);
-    });
-
-    // 通知 Grid
-    EventBus.emit('settings:viewMode', mode);
   }
 }
 
