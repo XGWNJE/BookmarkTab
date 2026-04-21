@@ -195,6 +195,18 @@
   }
 }
 
+/* 卡片文字默认隐藏（设置关闭时） */
+[data-show-card-text="false"] .card-title,
+[data-show-card-text="false"] .card-meta {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+[data-show-card-text="false"] .card-info:hover .card-title,
+[data-show-card-text="false"] .card-info:hover .card-meta {
+  opacity: 1;
+}
+
 /* 新建卡片占位 */
 .bookmark-card.new-card {
   border: 2px dashed var(--glass-border);

@@ -215,6 +215,20 @@ class App {
       this.applyOpenMode(mode, newBtn, curBtn);
     });
 
+    // 卡片文字显示切换
+    const textOnBtn  = document.getElementById('card-text-on');
+    const textOffBtn = document.getElementById('card-text-off');
+    const savedText  = localStorage.getItem('showCardText') || 'false';
+    this.applyShowCardText(savedText, textOnBtn, textOffBtn);
+
+    document.getElementById('card-text-group').addEventListener('click', (e) => {
+      const btn = e.target.closest('.menu-toggle-btn');
+      if (!btn) return;
+      const show = btn.dataset.value;
+      localStorage.setItem('showCardText', show);
+      this.applyShowCardText(show, textOnBtn, textOffBtn);
+    });
+
     // 点击触发按钮切换面板
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -245,6 +259,19 @@ class App {
     } else {
       newBtn.classList.add('active');
       curBtn.classList.remove('active');
+    }
+  }
+
+  applyShowCardText(show, onBtn, offBtn) {
+    const app = document.getElementById('app');
+    if (show === 'true') {
+      app.dataset.showCardText = 'true';
+      onBtn.classList.add('active');
+      offBtn.classList.remove('active');
+    } else {
+      app.dataset.showCardText = 'false';
+      offBtn.classList.add('active');
+      onBtn.classList.remove('active');
     }
   }
 
@@ -299,6 +326,9 @@ class App {
     });
 
     // ── 右侧删除区域 dragover/dragleave/drop ──
+    let pendingDeleteId = null;
+    let pendingDeleteIsFolder = false;
+
     deleteZone.addEventListener('dragover', (e) => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
@@ -314,10 +344,34 @@ class App {
       e.stopPropagation();
       const id = e.dataTransfer.getData('text/plain');
       if (id) {
-        EventBus.emit('card:delete', { id, isFolder: activeDragIsFolder });
+        pendingDeleteId = id;
+        pendingDeleteIsFolder = activeDragIsFolder;
+        const name = activeDragIsFolder ? '此文件夹' : '此书签';
+        document.getElementById('delete-confirm-message').textContent = `确定要删除 ${name} 吗？`;
+        document.getElementById('delete-confirm-dialog').classList.remove('hidden');
       }
       deleteZone.classList.remove('over');
       this._hideDragZones(movePanel, deleteZone);
+    });
+
+    // 删除确认弹窗确认按钮
+    document.getElementById('delete-confirm-btn').addEventListener('click', () => {
+      if (pendingDeleteId) {
+        EventBus.emit('card:delete', { id: pendingDeleteId, isFolder: pendingDeleteIsFolder });
+        pendingDeleteId = null;
+        pendingDeleteIsFolder = false;
+      }
+      document.getElementById('delete-confirm-dialog').classList.add('hidden');
+    });
+
+    // 删除确认弹窗取消/关闭
+    const deleteConfirmDialog = document.getElementById('delete-confirm-dialog');
+    deleteConfirmDialog.querySelectorAll('[data-action="cancel"], [data-action="close"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        pendingDeleteId = null;
+        pendingDeleteIsFolder = false;
+        deleteConfirmDialog.classList.add('hidden');
+      });
     });
 
     // ── 左侧面板内的 dragover/drop ──
