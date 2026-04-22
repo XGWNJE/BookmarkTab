@@ -169,7 +169,7 @@
   width: 100%;
   font-size: var(--font-size-sm);
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.85);
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -178,21 +178,11 @@
 
 .card-meta {
   font-size: var(--font-size-xs);
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--text-tertiary);
   margin-top: 2px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-@media (prefers-color-scheme: dark) {
-  .card-title {
-    color: rgba(255, 255, 255, 0.92);
-  }
-
-  .card-meta {
-    color: rgba(255, 255, 255, 0.5);
-  }
 }
 
 /* 卡片文字默认隐藏（设置关闭时） */
@@ -323,23 +313,15 @@
 .context-menu {
   position: fixed;
   min-width: 160px;
-  background: rgba(248, 248, 250, 0.95);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur-strong);
+  -webkit-backdrop-filter: var(--glass-blur-strong);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  box-shadow: var(--shadow-card);
   z-index: 2000;
   padding: 4px 0;
   animation: contextMenuIn 0.12s ease;
-}
-
-@media (prefers-color-scheme: dark) {
-  .context-menu {
-    background: rgba(44, 44, 48, 0.96);
-    border-color: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.3);
-  }
 }
 
 @keyframes contextMenuIn {
@@ -362,13 +344,7 @@
 }
 
 .context-menu-item:hover {
-  background: rgba(0, 0, 0, 0.05);
-}
-
-@media (prefers-color-scheme: dark) {
-  .context-menu-item:hover {
-    background: rgba(255, 255, 255, 0.08);
-  }
+  background: var(--glass-bg-hover);
 }
 
 .context-menu-item.danger {
@@ -379,20 +355,8 @@
   background: rgba(255, 59, 48, 0.08);
 }
 
-@media (prefers-color-scheme: dark) {
-  .context-menu-item.danger:hover {
-    background: rgba(255, 59, 48, 0.15);
-  }
-}
-
 .context-menu-separator {
   height: 1px;
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--glass-border);
   margin: 4px 0;
-}
-
-@media (prefers-color-scheme: dark) {
-  .context-menu-separator {
-    background: rgba(255, 255, 255, 0.1);
-  }
 }

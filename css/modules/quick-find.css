@@ -30,7 +30,9 @@
   position: relative;
   width: 90%;
   max-width: 560px;
-  background: rgba(30, 30, 50, 0.98);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-dialog);

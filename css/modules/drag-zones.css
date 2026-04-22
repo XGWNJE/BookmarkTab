@@ -147,3 +147,15 @@
 .drag-delete-zone.over .drag-delete-label {
   opacity: 1;
 }
+
+@media (prefers-color-scheme: dark) {
+  .drag-delete-zone {
+    background: rgba(80, 30, 30, 0.9);
+    border-left-color: rgba(255, 80, 80, 0.5);
+  }
+
+  .drag-delete-zone.over {
+    background: rgba(100, 35, 35, 0.95);
+    border-left-color: rgba(255, 100, 100, 0.7);
+  }
+}
