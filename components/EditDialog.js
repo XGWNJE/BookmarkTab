@@ -92,7 +92,7 @@ class EditDialog {
 
     try {
       const origin = new URL(url).origin;
-      const faviconUrl = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(origin)}&size=32`;
+      const faviconUrl = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(origin)}&size=64`;
 
       this.faviconPreview.innerHTML = `
         <img src="${faviconUrl}" alt="" onerror="this.style.display='none'">

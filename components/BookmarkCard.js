@@ -377,6 +377,10 @@ class BookmarkCard {
           this.startEdit(titleEl);
         }
       },
+      ...(!this.isFolder ? [{
+        label: '刷新图标',
+        action: () => this.refreshFavicon()
+      }] : []),
       {
         label: hasCustomIcon ? '更换图标...' : '自定义图标...',
         action: () => this.pickCustomIcon(x, y)
@@ -615,6 +619,29 @@ class BookmarkCard {
       // 书签：恢复 favicon 或首字母
       const cachedFavicon = BookmarkStore.getFavicon(this.data.url);
       this.updateIcon(cachedFavicon || null);
+    }
+  }
+
+  /**
+   * 刷新书签图标（清除缓存后重新获取）
+   */
+  async refreshFavicon() {
+    const iconEl = this.element.querySelector('.card-icon');
+    const fallbackEl = iconEl?.querySelector('.favicon-fallback');
+
+    // 闪烁提示：隐藏旧图标
+    if (iconEl) iconEl.style.opacity = '0';
+    if (fallbackEl) fallbackEl.style.display = 'none';
+
+    BookmarkStore.clearFavicon(this.data.url);
+    BookmarkStore.removeCustomIcon(this.data.id);
+    const favicon = await BookmarkStore.fetchFavicon(this.data.url);
+
+    // 闪烁提示：显示新图标
+    this.updateIcon(favicon || null);
+    if (iconEl) {
+      iconEl.style.transition = 'opacity 0.15s';
+      iconEl.style.opacity = '1';
     }
   }
 

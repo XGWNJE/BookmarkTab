@@ -297,6 +297,17 @@ class BookmarkStore {
   }
 
   /**
+   * 清除单个 favicon 缓存（用于刷新）
+   */
+  clearFavicon(url) {
+    const domain = this.getDomainFromUrl(url);
+    if (!domain) return;
+    this._loadFaviconCache();
+    this.faviconCache.delete(domain);
+    this._saveFaviconCache();
+  }
+
+  /**
    * 异步获取 favicon（带去重、缓存和失败标记）
    * @param {string} url - 书签 URL
    * @returns {Promise<string|null>} favicon URL 或 null
@@ -334,7 +345,7 @@ class BookmarkStore {
   async _doFetchFavicon(url, domain) {
     // 方式1：使用 Chrome 内置 _favicon API
     try {
-      const chromeUrl = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(url)}&size=64`;
+      const chromeUrl = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(url)}&size=256`;
 
       const result = await new Promise((resolve, reject) => {
         const img = new Image();
@@ -370,7 +381,7 @@ class BookmarkStore {
 
     // 方式2：Google Favicon API 回退
     try {
-      const googleUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64`;
+      const googleUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=256`;
 
       const result = await new Promise((resolve, reject) => {
         const img = new Image();
@@ -379,10 +390,10 @@ class BookmarkStore {
           if (img.naturalWidth > 1 && img.naturalHeight > 1) {
             try {
               const canvas = document.createElement('canvas');
-              canvas.width = 64;
-              canvas.height = 64;
+              canvas.width = 256;
+              canvas.height = 256;
               const ctx = canvas.getContext('2d');
-              ctx.drawImage(img, 0, 0, 64, 64);
+              ctx.drawImage(img, 0, 0, 256, 256);
               resolve(canvas.toDataURL('image/png'));
             } catch {
               resolve(googleUrl);
