@@ -17,9 +17,7 @@
 }
 
 .bookmark-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-card-hover);
-  border-color: rgba(255, 255, 255, 0.25);
+  border: 2px solid rgba(255, 255, 255, 0.5);
 }
 
 .bookmark-card:hover .card-gradient {
@@ -28,12 +26,11 @@
 
 .bookmark-card:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(99, 179, 237, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.5);
 }
 
 .bookmark-card.selected {
-  border-color: var(--accent);
+  border: 2px solid rgba(255, 255, 255, 0.5);
 }
 
 /* 图标区域 - 填充整个卡片 */
@@ -161,7 +158,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 12px 10px 10px;
+  padding: 7px 10px 5px;
+  text-align: center;
   z-index: 1;
 }
 
