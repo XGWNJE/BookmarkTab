@@ -482,13 +482,23 @@ class BookmarkCard {
     input.addEventListener('change', () => {
       const file = input.files[0];
       if (!file) return;
-      if (file.size > 1024 * 1024) { console.warn('Icon file too large (max 1MB)'); return; }
+      if (file.size > 1024 * 1024) {
+        this._showToast('图标文件不能超过 1MB');
+        return;
+      }
+      if (file.size < 1024) {
+        this._showToast('图标文件不能小于 1KB');
+        return;
+      }
 
       if (file.type === 'image/svg+xml') {
         const reader = new FileReader();
         reader.onload = () => {
           const svgText = this.sanitizeSvg(reader.result);
-          if (!svgText) return;
+          if (!svgText) {
+            this._showToast('SVG 代码无效或包含危险内容');
+            return;
+          }
           BookmarkStore.setCustomIcon(this.data.id, svgText);
           this.updateIcon(svgText);
         };
@@ -498,6 +508,10 @@ class BookmarkCard {
         reader.onload = () => {
           const img = new Image();
           img.onload = () => {
+            if (img.naturalWidth < 32 || img.naturalHeight < 32) {
+              this._showToast(`图标尺寸太小（${img.naturalWidth}×${img.naturalHeight}），建议至少 32×32`);
+              return;
+            }
             const canvas = document.createElement('canvas');
             const size = 256;
             canvas.width = size; canvas.height = size;
@@ -569,6 +583,8 @@ class BookmarkCard {
         if (clean) {
           BookmarkStore.setCustomIcon(this.data.id, clean);
           this.updateIcon(clean);
+        } else {
+          this._showToast('SVG 代码无效或包含危险内容');
         }
       }
       overlay.remove();
@@ -605,6 +621,43 @@ class BookmarkCard {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * 显示临时提示
+   */
+  _showToast(message, duration = 2000) {
+    const existing = document.querySelector('.bookmark-card-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.className = 'bookmark-card-toast';
+    toast.textContent = message;
+    toast.style.cssText = `
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      z-index: 9999;
+      pointer-events: none;
+      animation: bookmarkCardToastIn 0.2s ease;
+    `;
+    document.body.appendChild(toast);
+
+    // 复用已存在的 toast 样式，避免每次创建新的 <style> 元素
+    if (!document.getElementById('bookmark-card-toast-styles')) {
+      const style = document.createElement('style');
+      style.id = 'bookmark-card-toast-styles';
+      style.textContent = '@keyframes bookmarkCardToastIn{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}';
+      document.head.appendChild(style);
+    }
+
+    setTimeout(() => toast.remove(), duration);
   }
 
   /**
