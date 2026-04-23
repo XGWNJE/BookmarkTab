@@ -1,72 +1,92 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+本文档为 Claude Code 提供本仓库的代码协作指引。
 
-## Project Overview
+## 项目概述
 
-BookmarkTab is a Chrome Extension (Manifest V3) that replaces the new tab page with an elegant bookmark manager featuring glassmorphism design and automatic dark/light mode support. It reads and writes directly to Chrome's native bookmark data.
+BookmarkTab 是一款 Chrome 扩展（Manifest V3），将新标签页替换为优雅的书签管理器。采用玻璃拟态设计，自动适配系统深浅色模式。直接读写 Chrome 原生书签数据。
 
-## Architecture
+## 架构
 
 ```
 BookmarkTab/
-├── components/     # UI components (BookmarkCard, BookmarkGrid, Breadcrumb, Dialogs, etc.)
-├── core/           # Data layer and system infrastructure
-├── css/            # Styles organized by feature module
-├── icons/          # Extension icons
-└── main.js         # Application entry point
+├── components/     # UI 组件
+├── core/           # 数据层与系统基础设施
+├── css/            # 样式：main.css 入口 + modules/ 模块
+│   └── modules/    # 按功能划分的 CSS 模块
+├── icons/          # 扩展图标 + export.html（图标导出工具）
+├── wallpapers/     # 壁纸资源与配置（SettingsPanel 使用，待重构）
+├── main.js         # 应用入口
+└── manifest.json   # Chrome 扩展清单 V3
 ```
 
-### Core Layer (./core/)
+### 核心层（./core/）
 
-- **BookmarkStore.js** — Data layer wrapping `chrome.bookmarks` API. Handles CRUD operations, favicon caching (memory + localStorage dual-layer), and custom icon storage. All bookmark operations go through this singleton.
-- **Router.js** — Navigation layer managing folder hierarchy with browser history integration. Maintains a stack of folder paths and emits `navigate` events via EventBus.
-- **EventBus.js** — Publish/subscribe event system decoupling all components. Used extensively for cross-component communication (e.g., `navigate`, `card:dragstart`, `toolbar:newBookmark`).
+- **BookmarkStore.js** — 数据层，封装 `chrome.bookmarks` API。负责增删改查、favicon 缓存（内存 + localStorage 双层）、自定义图标存储、书签树查询。所有书签操作均通过此单例完成。
+- **Router.js** — 导航层，管理文件夹层级与浏览器历史集成。维护文件夹路径栈，通过 EventBus 发射 `navigate` 事件。
+- **EventBus.js** — 发布/订阅事件系统，解耦各组件。广泛用于跨组件通信（如 `navigate`、`card:dragstart`、`toolbar:newBookmark`）。
 
-### Component Layer (./components/)
+### 组件层（./components/）
 
-Components are loosely coupled and communicate via EventBus events. Each component typically:
-- Subscribes to relevant events in its constructor
-- Renders UI and attaches DOM event listeners
-- Emits events for state changes
+组件间松耦合，通过 EventBus 事件通信。每个组件通常：
+- 在构造函数中订阅相关事件
+- 渲染 UI 并绑定 DOM 事件监听器
+- 状态变更时发射事件
 
-Key components:
-- **BookmarkGrid.js** — Grid container rendering bookmark cards for current folder
-- **BookmarkCard.js** — Individual bookmark/folder card with drag-drop, right-click menu, custom icon support
-- **Breadcrumb.js** — Folder path navigation bar
-- **EditDialog.js** — Create/edit bookmark or folder dialog
-- **MoveDialog.js** — Target folder selection for move operations
-- **QuickFind.js** — Global fuzzy search overlay (`/` or `Ctrl+F`)
-- **Toolbar.js** — Top toolbar with actions
+关键组件：
+- **BookmarkGrid.js** — 网格容器，渲染当前文件夹的书签卡片。负责 favicon 分批懒加载、卡片多选、拖拽排序、删除动画。
+- **BookmarkCard.js** — 单张书签/文件夹卡片。支持拖拽、右键菜单、行内标题编辑、自定义图标、Toast 提示。
+- **Breadcrumb.js** — 面包屑导航栏。
+- **EditDialog.js** — 新建/编辑书签或文件夹弹窗。
+- **MoveDialog.js** — 移动书签时选择目标文件夹的弹窗。
+- **QuickFind.js** — 全局模糊搜索浮层（`/` 或 `Ctrl+F`）。
+- **Toolbar.js** — 顶部工具栏，自动隐藏行为。
+- **SettingsPanel.js** — 壁纸偏好设置面板（当前未启用，待重构）。
 
-### CSS (./css/)
+### CSS（./css/）
 
-Modular CSS architecture using CSS custom properties. Key modules:
-- `variables.css` — Design tokens (colors, spacing, border-radius, transitions)
-- `card.css` — Bookmark card styles and context menu
-- `drag-zones.css` — Edge drag zones (left: move panel, right: delete zone)
-- `animations.css` — Card entrance/hover animations
+模块化 CSS 架构，使用 CSS 自定义属性。`main.css` 引入所有模块。
 
-## Key Patterns
+关键模块：
+- `variables.css` — 设计令牌（颜色、间距、圆角、过渡），通过 `prefers-color-scheme` 适配深浅色模式。
+- `card.css` — 书签卡片样式、右键菜单、放置指示器、Toast 动画。
+- `grid.css` — 网格布局与空状态。
+- `drag-zones.css` — 边缘拖拽区域（左侧：移动面板，右侧：删除区域）。
+- `dialog.css` — 弹窗/模态框基础样式。
+- `toolbar.css` — 工具栏与菜单触发按钮样式。
+- `breadcrumb.css` — 面包屑导航。
+- `quick-find.css` — 搜索浮层。
+- `animations.css` — 卡片入场/悬停动画。
+- `shortcuts.css` — 快捷键提示弹窗。
+- `settings.css` / `wallpapers.css` — 设置面板与壁纸网格（当前未启用）。
+- `base.css` — 全局基础样式。
 
-**Event-driven communication**: Components never call each other directly. `BookmarkGrid` listens for `navigate` from Router, `Toolbar` emits `toolbar:newBookmark` caught by `EditDialog`, etc.
+## 关键模式
 
-**Favicon caching**: `BookmarkStore` uses domain-extracted favicon caching with `chrome-extension://.../_favicon/` API primary and Google Favicon API fallback. Failed lookups are marked to prevent retry storms.
+**事件驱动通信**：组件间不直接调用。`BookmarkGrid` 监听 Router 的 `navigate`，`Toolbar` 发射 `toolbar:newBookmark` 由 `EditDialog` 捕获，以此类推。
 
-**Drag-drop zones**: Main content area has invisible edge triggers (12% viewport width each side). Left edge shows folder tree panel for move target, right edge shows delete confirmation.
+**Favicon 缓存**：`BookmarkStore` 按域名提取并缓存 favicon。主源使用 `chrome-extension://.../_favicon/` API，失败时回退到 Google Favicon API。失败的查找会被标记，防止重复请求风暴。`clearFavicon()` 支持右键菜单手动刷新。
 
-**SVG sanitization**: Custom icons (SVG) have `<script>`, `on*` attributes, and `javascript:` links stripped before storage.
+**拖拽区域**：主内容区两侧有不可见的边缘触发区（各占视口宽度的 12%）。左侧显示文件夹树面板作为移动目标，右侧显示删除确认。
 
-## Development
+**SVG 安全过滤**：自定义图标（SVG）在存储前通过 `DOMParser` 去除 `<script>`、`on*` 事件属性、`javascript:` 和 `data:` 危险链接。
 
-**Loading the extension:**
-1. Open `chrome://extensions/`
-2. Enable "Developer mode" (top right)
-3. Click "Load unpacked" → select project root
-4. Open a new tab to see changes
+**Toast 提示**：`BookmarkCard._showToast()` 在底部居中显示临时反馈，用于验证错误（如图标过大、SVG 不安全）。使用单例样式块管理入场动画。
 
-**After code changes:** Click the refresh button on the extension card in `chrome://extensions/`
+**图标上传校验**：自定义图标强制执行文件大小（1 KB – 1 MB）、图片尺寸（最小 32×32）和 SVG 安全检查。校验失败时显示 Toast，而非静默拒绝。
 
-**No build step** — pure ES Modules, loads directly from source.
+**应用级职责**（`main.js`）：全局快捷键、卡片尺寸持久化（`localStorage`）、拖拽区域协调、菜单面板（跳转方式 + 卡片文字显隐切换）、多选状态管理。
 
-**No third-party dependencies** — vanilla JavaScript (ES2020+), CSS3, Chrome Extensions Manifest V3 only.
+## 开发指南
+
+**加载扩展：**
+1. 打开 `chrome://extensions/`
+2. 右上角开启「开发者模式」
+3. 点击「加载已解压的扩展程序」，选择项目根目录
+4. 打开新标签页即可使用
+
+**代码修改后：** 在 `chrome://extensions/` 点击扩展卡片上的刷新按钮。
+
+**无构建步骤** — 纯 ES Modules，直接从源码加载。
+
+**无第三方依赖** — 原生 JavaScript（ES2020+）、CSS3、Chrome Extensions Manifest V3。

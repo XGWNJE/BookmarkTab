@@ -10,10 +10,12 @@
 - 快速搜索（`/` 或 `Ctrl+F`），全局书签模糊搜索
 
 ### 书签操作
-- 右键菜单：重命名、自定义图标
+- 右键菜单：重命名、刷新图标、自定义图标、恢复默认图标
 - 支持 PNG / JPG / WebP / GIF / ICO / SVG 文件上传，SVG 自动安全过滤
+- 图标上传限制：文件大小 1 KB – 1 MB，图片尺寸建议 ≥32×32
 - 新建书签/文件夹（`N` / `Shift+N`）
 - 书签跳转方式可切换（新标签页 / 当前页）
+- 卡片文字显示可切换（显示 / 隐藏标题）
 
 ### 拖拽交互
 - 卡片间拖拽排序
@@ -56,18 +58,25 @@
 ```
 BookmarkTab/
 ├── components/          # UI 组件
-│   ├── BookmarkCard.js  # 书签卡片（拖拽、右键菜单、自定义图标）
-│   ├── BookmarkGrid.js  # 网格容器
+│   ├── BookmarkCard.js  # 书签卡片（拖拽、右键菜单、自定义图标、Toast 提示）
+│   ├── BookmarkGrid.js  # 网格容器（favicon 懒加载、排序）
 │   ├── Breadcrumb.js    # 面包屑导航
 │   ├── EditDialog.js    # 新建/编辑弹窗
 │   ├── MoveDialog.js    # 移动书签弹窗
-│   └── QuickFind.js     # 快速搜索
+│   ├── QuickFind.js     # 快速搜索
+│   ├── SettingsPanel.js # 设置面板（壁纸偏好，待重构）
+│   └── Toolbar.js       # 顶部工具栏
 ├── core/                 # 数据层
-│   ├── BookmarkStore.js # 书签 API + favicon 缓存
+│   ├── BookmarkStore.js # 书签 API + favicon 缓存 + 自定义图标存储
 │   ├── EventBus.js      # 事件总线
 │   └── Router.js        # 导航路由
-├── css/modules/          # CSS 模块
-├── main.js              # 应用入口
+├── css/
+│   ├── main.css          # 样式入口
+│   └── modules/          # CSS 模块
+├── icons/                # 扩展图标
+│   └── export.html       # 图标导出工具
+├── wallpapers/           # 壁纸资源（待重构）
+├── main.js               # 应用入口
 └── manifest.json
 ```
 
@@ -88,8 +97,7 @@ BookmarkTab/
 
 ## 待实现
 
-- 数据导出/导入
-- 自定义壁纸系统
+- 数据导出/导入（已有 `icons/export.html` 图标导出工具）
+- 自定义壁纸系统（组件与资源已存在，待重构接入）
 - 批量操作
 - 使用频率统计
-
