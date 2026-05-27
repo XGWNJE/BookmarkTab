@@ -118,11 +118,15 @@ class EditDialog {
       // 新建模式
       if (this.urlInput.parentElement.style.display !== 'none') {
         // 书签
-        const url = this.urlInput.value.trim();
-        await BookmarkStore.create(this.currentParentId, title, url || undefined);
+        const url = this.normalizeUrl(this.urlInput.value.trim());
+        if (!url) {
+          this.urlInput.focus();
+          return;
+        }
+        EventBus.emit('bookmark:create', { parentId: this.currentParentId, title, url });
       } else {
         // 文件夹
-        await BookmarkStore.create(this.currentParentId, title);
+        EventBus.emit('folder:create', { parentId: this.currentParentId, title });
       }
     }
 
@@ -134,6 +138,16 @@ class EditDialog {
     this.urlInput.parentElement.style.display = 'block';
     this.isEditMode = false;
     this.currentId = null;
+  }
+
+  normalizeUrl(value) {
+    if (!value) return null;
+    const withScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(value) ? value : `https://${value}`;
+    try {
+      return new URL(withScheme).href;
+    } catch {
+      return null;
+    }
   }
 }
 

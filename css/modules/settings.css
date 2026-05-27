@@ -93,16 +93,19 @@
 /* 壁纸网格 */
 .wallpaper-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
 }
 
 .wallpaper-item {
   aspect-ratio: 16/9;
+  width: 100%;
+  padding: 0;
   border-radius: var(--radius-sm);
   overflow: hidden;
   cursor: pointer;
   border: 2px solid transparent;
+  background: transparent;
   transition: all var(--transition-fast);
 }
 
@@ -119,4 +122,10 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.wallpaper-preview {
+  display: block;
+  width: 100%;
+  height: 100%;
 }

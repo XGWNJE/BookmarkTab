@@ -1,67 +1,39 @@
 /**
- * SettingsPanel - 设置面板（壁纸偏好）
- * TODO: 壁纸系统后续重构
+ * SettingsPanel - 左下角设置菜单中的壁纸偏好
  */
-import EventBus from '../core/EventBus.js';
-
 class SettingsPanel {
   constructor() {
-    this.panel = document.getElementById('settings-panel');
     this.wallpaperGrid = document.getElementById('wallpaper-grid');
+    this.storageKey = 'wallpaperId';
 
     // 默认壁纸
     this.wallpapers = [
-      { id: 'default', name: '默认渐变', type: 'gradient', value: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' },
-      { id: 'sunset', name: '日落', type: 'gradient', value: 'linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)' },
-      { id: 'ocean', name: '海洋', type: 'gradient', value: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
-      { id: 'forest', name: '森林', type: 'gradient', value: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)' },
-      { id: 'dark', name: '深空', type: 'gradient', value: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%)' },
+      { id: 'system', name: '跟随系统', type: 'system', value: '' },
+      { id: 'default', name: '默认柔光', type: 'color', value: '' },
+      { id: 'mist', name: '晨雾', type: 'gradient', value: 'linear-gradient(135deg, #f3f7f4 0%, #dce9ee 48%, #d8d1c1 100%)' },
+      { id: 'dusk', name: '暮色', type: 'gradient', value: 'linear-gradient(135deg, #202733 0%, #374151 45%, #6b5f73 100%)' },
+      { id: 'leaf', name: '林影', type: 'gradient', value: 'linear-gradient(135deg, #eef4e8 0%, #adc7b5 52%, #6c8777 100%)' },
     ];
 
-    this.currentWallpaper = 'default';
+    this.currentWallpaper = localStorage.getItem(this.storageKey) || 'system';
 
     this.init();
   }
 
   init() {
-    // 打开
-    EventBus.on('toolbar:settings', () => this.show());
-
-    // 关闭
-    this.panel.querySelector('.settings-overlay').addEventListener('click', () => {
-      this.hide();
-    });
-
-    this.panel.querySelector('.settings-close').addEventListener('click', () => {
-      this.hide();
-    });
-
-    // 渲染壁纸
+    if (!this.wallpaperGrid) return;
+    this.applyWallpaper(this.currentWallpaper);
     this.renderWallpapers();
-
-    // 键盘
-    document.addEventListener('keydown', (e) => {
-      if (!this.panel.classList.contains('hidden') && e.key === 'Escape') {
-        this.hide();
-      }
-    });
-  }
-
-  show() {
-    this.panel.classList.remove('hidden');
-  }
-
-  hide() {
-    this.panel.classList.add('hidden');
   }
 
   renderWallpapers() {
     this.wallpaperGrid.innerHTML = this.wallpapers.map(wp => `
-      <div class="wallpaper-item ${wp.id === this.currentWallpaper ? 'active' : ''}"
+      <button class="wallpaper-item ${wp.id === this.currentWallpaper ? 'active' : ''}"
            data-id="${wp.id}"
+           type="button"
            title="${wp.name}">
-        <div style="width:100%;height:100%;${wp.type === 'gradient' ? `background:${wp.value}` : `background-image:url(${wp.value})`};background-size:cover;"></div>
-      </div>
+        <span class="wallpaper-preview" style="${this.getPreviewStyle(wp)}"></span>
+      </button>
     `).join('');
 
     // 点击切换
@@ -74,21 +46,49 @@ class SettingsPanel {
   }
 
   setWallpaper(id) {
-    this.currentWallpaper = id;
     const wp = this.wallpapers.find(w => w.id === id);
     if (!wp) return;
 
-    const wallpaper = document.getElementById('wallpaper');
-    if (wp.type === 'gradient') {
-      wallpaper.style.background = wp.value;
-    } else {
-      wallpaper.style.backgroundImage = `url(${wp.value})`;
-    }
+    this.currentWallpaper = id;
+    localStorage.setItem(this.storageKey, id);
+    this.applyWallpaper(id);
 
     // 更新选中
     this.wallpaperGrid.querySelectorAll('.wallpaper-item').forEach(item => {
       item.classList.toggle('active', item.dataset.id === id);
     });
+  }
+
+  applyWallpaper(id) {
+    const wp = this.wallpapers.find(w => w.id === id) || this.wallpapers[0];
+    const wallpaper = document.getElementById('wallpaper');
+    if (!wallpaper) return;
+
+    wallpaper.style.background = '';
+    wallpaper.style.backgroundImage = '';
+
+    if (wp.type === 'system' || wp.type === 'color') {
+      return;
+    }
+
+    if (wp.type === 'gradient') {
+      wallpaper.style.background = wp.value;
+    } else {
+      wallpaper.style.backgroundImage = `url(${wp.value})`;
+    }
+  }
+
+  getPreviewStyle(wp) {
+    if (wp.type === 'system') {
+      return 'background:linear-gradient(135deg,#e8e8ed 0 50%,#2c2c2e 50% 100%);';
+    }
+    if (wp.type === 'color') {
+      return 'background:linear-gradient(135deg,#e8e8ed 0%,#f4f1ea 100%);';
+    }
+    if (wp.type === 'gradient') {
+      return `background:${wp.value};`;
+    }
+    return `background-image:url(${wp.value});background-size:cover;`;
   }
 }
 

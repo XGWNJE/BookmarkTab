@@ -10,8 +10,7 @@ import EditDialog from './components/EditDialog.js';
 import MoveDialog from './components/MoveDialog.js';
 import QuickFind from './components/QuickFind.js';
 import BookmarkStore from './core/BookmarkStore.js';
-// TODO: 壁纸系统后续重构，当前暂不加载
-// import SettingsPanel from './components/SettingsPanel.js';
+import SettingsPanel from './components/SettingsPanel.js';
 
 class App {
   constructor() {
@@ -24,7 +23,9 @@ class App {
     this.init();
   }
 
-  init() {
+  async init() {
+    await BookmarkStore.initStorage();
+
     // 初始化组件
     this.grid = new BookmarkGrid();
     new Breadcrumb();
@@ -32,8 +33,7 @@ class App {
     new EditDialog();
     new MoveDialog();
     new QuickFind();
-    // TODO: 壁纸系统后续重构
-    // new SettingsPanel();
+    new SettingsPanel();
 
     // 应用已保存的卡片尺寸
     this.applyCardSize(this.cardSize);
@@ -344,11 +344,7 @@ class App {
       e.stopPropagation();
       const id = e.dataTransfer.getData('text/plain');
       if (id) {
-        pendingDeleteId = id;
-        pendingDeleteIsFolder = activeDragIsFolder;
-        const name = activeDragIsFolder ? '此文件夹' : '此书签';
-        document.getElementById('delete-confirm-message').textContent = `确定要删除 ${name} 吗？`;
-        document.getElementById('delete-confirm-dialog').classList.remove('hidden');
+        EventBus.emit('card:requestDelete', { id, isFolder: activeDragIsFolder });
       }
       deleteZone.classList.remove('over');
       this._hideDragZones(movePanel, deleteZone);
@@ -372,6 +368,14 @@ class App {
         pendingDeleteIsFolder = false;
         deleteConfirmDialog.classList.add('hidden');
       });
+    });
+
+    EventBus.on('card:requestDelete', async ({ id, isFolder, title }) => {
+      pendingDeleteId = id;
+      pendingDeleteIsFolder = isFolder;
+      document.getElementById('delete-confirm-message').textContent =
+        await this._getDeleteConfirmMessage(id, isFolder, title);
+      deleteConfirmDialog.classList.remove('hidden');
     });
 
     // ── 左侧面板内的 dragover/drop ──
@@ -485,6 +489,21 @@ class App {
     if (folderTree) {
       folderTree.dataset.loadedFor = '';
       folderTree._stopAutoScroll?.();
+    }
+  }
+
+  async _getDeleteConfirmMessage(id, isFolder, title = '') {
+    if (!isFolder) {
+      return `确定要删除书签“${title || '此书签'}”吗？`;
+    }
+
+    try {
+      const node = await BookmarkStore.getNode(id);
+      const count = BookmarkStore.countDescendants(node);
+      const name = title || node?.title || '此文件夹';
+      return `确定要删除文件夹“${name}”吗？其中包含 ${count} 个子项，会一并删除。`;
+    } catch {
+      return `确定要删除文件夹“${title || '此文件夹'}”吗？其中的子项会一并删除。`;
     }
   }
 

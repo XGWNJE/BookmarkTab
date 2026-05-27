@@ -3,6 +3,7 @@
  */
 import EventBus from '../core/EventBus.js';
 import BookmarkStore from '../core/BookmarkStore.js';
+import Router from '../core/Router.js';
 
 class QuickFind {
   constructor() {
@@ -144,7 +145,14 @@ class QuickFind {
 
   openResult(result) {
     if (result.url) {
-      chrome.tabs.create({ url: result.url, active: false });
+      const openInCurrent = localStorage.getItem('openMode') === 'current';
+      if (openInCurrent) {
+        chrome.tabs.update({ url: result.url });
+      } else {
+        chrome.tabs.create({ url: result.url, active: false });
+      }
+    } else {
+      Router.push(result.id, result.title);
     }
     this.hide();
   }

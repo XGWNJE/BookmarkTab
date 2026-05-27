@@ -86,6 +86,16 @@ BookmarkTab/
 - Chrome Extensions Manifest V3
 - CSS3（`backdrop-filter` 玻璃拟态）
 
+## 验证
+
+项目带有轻量 eval runner：
+
+```bash
+python evals/run.py --all
+```
+
+代码修改后建议至少运行 `python evals/run.py --regression`。
+
 ## 权限
 
 | 权限 | 用途 |

@@ -28,9 +28,10 @@ function applyImageToElement(el, url) {
 }
 
 class BookmarkCard {
-  constructor(data, container) {
+  constructor(data, container, options = {}) {
     this.data = data;
     this.container = container;
+    this.options = options;
     this.element = null;
     this.isFolder = !data.url;
     this.selected = false;
@@ -111,8 +112,8 @@ class BookmarkCard {
     const meta = document.createElement('div');
     meta.className = 'card-meta';
     if (this.isFolder) {
-      const children = await BookmarkStore.getChildren(this.data.id);
-      meta.textContent = `${children.length} 项`;
+      const count = this.options.childCount ?? 0;
+      meta.textContent = `${count} 项`;
     } else {
       meta.textContent = this.getDomain(this.data.url);
     }
@@ -252,7 +253,11 @@ class BookmarkCard {
       if (e.key === 'Enter') {
         this.open();
       } else if (e.key === 'Delete') {
-        EventBus.emit('card:delete', { id: this.data.id, isFolder: this.isFolder });
+        EventBus.emit('card:requestDelete', {
+          id: this.data.id,
+          isFolder: this.isFolder,
+          title: this.data.title
+        });
       } else if (e.key === 'F2') {
         const titleEl = this.element.querySelector('.card-title');
         this.startEdit(titleEl);
@@ -381,6 +386,10 @@ class BookmarkCard {
         label: '刷新图标',
         action: () => this.refreshFavicon()
       }] : []),
+      {
+        label: '移动到...',
+        action: () => EventBus.emit('card:move', { id: this.data.id })
+      },
       {
         label: hasCustomIcon ? '更换图标...' : '自定义图标...',
         action: () => this.pickCustomIcon(x, y)
@@ -607,13 +616,35 @@ class BookmarkCard {
       const svgEl = doc.querySelector('svg');
       if (!svgEl) return null;
 
-      // 移除危险元素
-      svgEl.querySelectorAll('script, iframe, foreignObject').forEach(el => el.remove());
-      // 移除 on* 事件属性和危险链接
+      // 移除可执行内容、外部资源和复杂嵌入能力。
+      svgEl.querySelectorAll(
+        'script, iframe, foreignObject, object, embed, link, style, image, use'
+      ).forEach(el => el.remove());
+
       svgEl.querySelectorAll('*').forEach(el => {
         [...el.attributes].forEach(attr => {
-          if (/^on/i.test(attr.name)) el.removeAttribute(attr.name);
-          if (attr.name === 'href' && /^(javascript|data)/i.test(attr.value)) el.removeAttribute(attr.name);
+          const name = attr.name.toLowerCase();
+          const value = attr.value.trim();
+          const normalizedValue = value.replace(/\s+/g, '').toLowerCase();
+
+          if (/^on/i.test(name)) {
+            el.removeAttribute(attr.name);
+            return;
+          }
+
+          if (name === 'style' && /(url\(|expression\(|javascript:|data:)/i.test(value)) {
+            el.removeAttribute(attr.name);
+            return;
+          }
+
+          if ((name === 'href' || name === 'xlink:href') && !value.startsWith('#')) {
+            el.removeAttribute(attr.name);
+            return;
+          }
+
+          if (/(javascript:|data:)/i.test(normalizedValue)) {
+            el.removeAttribute(attr.name);
+          }
         });
       });
 

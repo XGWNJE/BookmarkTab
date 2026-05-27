@@ -18,11 +18,57 @@ class BookmarkStore {
     // 用户自定义图标缓存
     this.customIconStorageKey = 'custom_icon_cache';
     this.customIcons = null; // 延迟加载
+    this.storageInitialized = false;
     // 正在获取中的 favicon 请求去重
     this.faviconPending = new Map();
 
     // 监听 Chrome 书签变更
     this.setupListeners();
+  }
+
+  async initStorage() {
+    if (this.storageInitialized) return;
+    this.faviconCache = await this._loadMapFromStorage(this.faviconStorageKey);
+    this.customIcons = await this._loadMapFromStorage(this.customIconStorageKey);
+    this.storageInitialized = true;
+  }
+
+  async _loadMapFromStorage(key) {
+    const localValue = this._readLocalStorageObject(key);
+    let storedValue = null;
+
+    try {
+      const result = await chrome.storage.local.get(key);
+      storedValue = result?.[key] || null;
+    } catch {}
+
+    const merged = { ...(localValue || {}), ...(storedValue || {}) };
+    const map = new Map(Object.entries(merged));
+
+    if (localValue && !storedValue) {
+      this._writeChromeStorageObject(key, merged);
+    }
+
+    return map;
+  }
+
+  _readLocalStorageObject(key) {
+    try {
+      const stored = localStorage.getItem(key);
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      localStorage.removeItem(key);
+      return null;
+    }
+  }
+
+  _writeChromeStorageObject(key, value) {
+    try {
+      const result = chrome.storage.local.set({ [key]: value });
+      if (result?.catch) {
+        result.catch(() => {});
+      }
+    } catch {}
   }
 
   setupListeners() {
@@ -110,6 +156,20 @@ class BookmarkStore {
     }
   }
 
+  async getFolderChildCountMap() {
+    const tree = await this.getTree();
+    const counts = new Map();
+
+    const walk = (node) => {
+      if (!node?.children) return;
+      counts.set(node.id, node.children.length);
+      node.children.forEach(walk);
+    };
+
+    tree.forEach(walk);
+    return counts;
+  }
+
   /**
    * 全局搜索
    * @param {string} query - 搜索词
@@ -132,17 +192,11 @@ class BookmarkStore {
   _loadFaviconCache() {
     if (this.faviconCache !== null) return;
     this.faviconCache = new Map();
-    try {
-      const stored = localStorage.getItem(this.faviconStorageKey);
-      if (stored) {
-        const obj = JSON.parse(stored);
-        for (const [key, value] of Object.entries(obj)) {
-          this.faviconCache.set(key, value);
-        }
+    const stored = this._readLocalStorageObject(this.faviconStorageKey);
+    if (stored) {
+      for (const [key, value] of Object.entries(stored)) {
+        this.faviconCache.set(key, value);
       }
-    } catch {
-      // 缓存损坏，重建
-      localStorage.removeItem(this.faviconStorageKey);
     }
   }
 
@@ -150,8 +204,9 @@ class BookmarkStore {
    * 持久化 favicon 缓存到 localStorage
    */
   _saveFaviconCache() {
+    const obj = Object.fromEntries(this.faviconCache);
+    this._writeChromeStorageObject(this.faviconStorageKey, obj);
     try {
-      const obj = Object.fromEntries(this.faviconCache);
       localStorage.setItem(this.faviconStorageKey, JSON.stringify(obj));
     } catch {
       // localStorage 满了，清理失败项
@@ -170,6 +225,7 @@ class BookmarkStore {
     }
     try {
       const obj = Object.fromEntries(this.faviconCache);
+      this._writeChromeStorageObject(this.faviconStorageKey, obj);
       localStorage.setItem(this.faviconStorageKey, JSON.stringify(obj));
     } catch {}
   }
@@ -182,16 +238,11 @@ class BookmarkStore {
   _loadCustomIcons() {
     if (this.customIcons !== null) return;
     this.customIcons = new Map();
-    try {
-      const stored = localStorage.getItem(this.customIconStorageKey);
-      if (stored) {
-        const obj = JSON.parse(stored);
-        for (const [key, value] of Object.entries(obj)) {
-          this.customIcons.set(key, value);
-        }
+    const stored = this._readLocalStorageObject(this.customIconStorageKey);
+    if (stored) {
+      for (const [key, value] of Object.entries(stored)) {
+        this.customIcons.set(key, value);
       }
-    } catch {
-      localStorage.removeItem(this.customIconStorageKey);
     }
   }
 
@@ -203,8 +254,9 @@ class BookmarkStore {
   setCustomIcon(bookmarkId, dataUrl) {
     this._loadCustomIcons();
     this.customIcons.set(bookmarkId, dataUrl);
+    const obj = Object.fromEntries(this.customIcons);
+    this._writeChromeStorageObject(this.customIconStorageKey, obj);
     try {
-      const obj = Object.fromEntries(this.customIcons);
       localStorage.setItem(this.customIconStorageKey, JSON.stringify(obj));
     } catch {}
   }
@@ -216,8 +268,9 @@ class BookmarkStore {
   removeCustomIcon(bookmarkId) {
     this._loadCustomIcons();
     this.customIcons.delete(bookmarkId);
+    const obj = Object.fromEntries(this.customIcons);
+    this._writeChromeStorageObject(this.customIconStorageKey, obj);
     try {
-      const obj = Object.fromEntries(this.customIcons);
       localStorage.setItem(this.customIconStorageKey, JSON.stringify(obj));
     } catch {}
   }
@@ -506,32 +559,45 @@ class BookmarkStore {
       if (node.id === '0') {
         // 根节点，遍历子节点
         if (node.children) {
-          node.children.forEach(child => processNode(child, path));
+          node.children.forEach(child => {
+            const item = processNode(child, path);
+            if (item) result.push(item);
+          });
         }
-      } else if (node.id !== '2') {
-        // 排除"其他书签"
-        const currentPath = path ? `${path} / ${node.title}` : node.title;
-        if (!node.url) {
-          // 文件夹（排除自身及子孙节点）
-          if (excludeId && (node.id === excludeId || this.isDescendant(node, excludeId))) {
-            return;
-          }
-          const item = {
-            id: node.id,
-            title: node.title,
-            path: currentPath,
-            children: []
-          };
-          result.push(item);
-          if (node.children) {
-            node.children.forEach(child => {
-              if (!child.url) {
-                processNode(child, currentPath);
-              }
-            });
-          }
-        }
+        return null;
       }
+
+      if (node.id === '2') {
+        // 保持现有行为：移动目标不包含"其他书签"
+        return null;
+      }
+
+      if (!node.url) {
+        if (excludeId && node.id === excludeId) {
+          return null;
+        }
+
+        const currentPath = path ? `${path} / ${node.title}` : node.title;
+        const item = {
+          id: node.id,
+          title: node.title,
+          path: currentPath,
+          children: []
+        };
+
+        if (node.children) {
+          node.children.forEach(child => {
+            if (!child.url) {
+              const childItem = processNode(child, currentPath);
+              if (childItem) item.children.push(childItem);
+            }
+          });
+        }
+
+        return item;
+      }
+
+      return null;
     };
 
     processNode(tree[0], '');
@@ -545,6 +611,15 @@ class BookmarkStore {
       if (!child.url && this.isDescendant(child, childId)) return true;
     }
     return false;
+  }
+
+  countDescendants(node) {
+    if (!node?.children) return 0;
+    let count = node.children.length;
+    for (const child of node.children) {
+      count += this.countDescendants(child);
+    }
+    return count;
   }
 }
 

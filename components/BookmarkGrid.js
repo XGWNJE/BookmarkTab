@@ -34,6 +34,7 @@ class BookmarkGrid {
       }
     });
     EventBus.on('moved', () => this.refresh());
+    EventBus.on('childrenReordered', () => this.refresh());
 
     // 监听卡片事件
     EventBus.on('card:openFolder', ({ id, title }) => {
@@ -114,6 +115,10 @@ class BookmarkGrid {
     try {
       // 获取数据
       const children = await BookmarkStore.getChildren(folderId);
+      const hasFolders = children.some(child => !child.url);
+      const folderChildCounts = hasFolders
+        ? await BookmarkStore.getFolderChildCountMap()
+        : new Map();
 
       // 渲染
       if (children.length === 0) {
@@ -121,7 +126,9 @@ class BookmarkGrid {
       } else {
         for (let index = 0; index < children.length; index++) {
           const child = children[index];
-          const card = new BookmarkCard(child, this.grid);
+          const card = new BookmarkCard(child, this.grid, {
+            childCount: folderChildCounts.get(child.id)
+          });
           const element = await card.render();
           element.style.animationDelay = `${index * 30}ms`;
           element.classList.add('loaded');
@@ -247,16 +254,10 @@ class BookmarkGrid {
     const card = this.cards.get(id);
     if (!card) return;
 
-    // 确认动效
-    card.animateShake();
-
-    // 1秒后可撤销，暂时不做，只删除
-    setTimeout(async () => {
-      await card.animateDelete();
-      await BookmarkStore.remove(id, isFolder);
-      this.cards.delete(id);
-      this.selectedCards.delete(id);
-    }, 1000);
+    await card.animateDelete();
+    await BookmarkStore.remove(id, isFolder);
+    this.cards.delete(id);
+    this.selectedCards.delete(id);
   }
 
   clearSelection() {
@@ -281,13 +282,16 @@ class BookmarkGrid {
   }
 
   deleteSelected() {
-    this.selectedCards.forEach(async (id) => {
+    this.selectedCards.forEach((id) => {
       const card = this.cards.get(id);
       if (card) {
-        await BookmarkStore.remove(id, card.isFolder);
+        EventBus.emit('card:requestDelete', {
+          id,
+          isFolder: card.isFolder,
+          title: card.data.title
+        });
       }
     });
-    this.refresh();
   }
 }
 
