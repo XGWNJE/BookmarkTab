@@ -36,6 +36,7 @@ BookmarkTab/
 ### 核心层（./core/）
 
 - **BookmarkStore.js** — 数据层，封装 `chrome.bookmarks` API。负责增删改查、favicon 缓存、自定义图标存储、书签树查询、文件夹子项数量统计。图标缓存优先写入 `chrome.storage.local`，同时兼容旧 `localStorage` 数据。所有书签操作均通过此单例完成。
+- **IconSourceProvider.js** — 外部 SVG 图标源适配层。MVP 按比例混排 iconfont、Iconify 和 SVG API：优先尝试 iconfont 实时查询；当 iconfont API 不返回可用 SVG 时，会自动后台打开/复用与当前关键词匹配的 iconfont 搜索页，并从 `.block-icon-list li svg.icon` 抽取 SVG。不得读取不匹配关键词的旧 iconfont 页面。`IconStudio` 的 iconfont 按钮只用于首次登录或人工查看结果；图标工坊关闭时需要关闭由本流程自动打开的 iconfont 标签页。
 - **Router.js** — 导航层，管理文件夹层级与浏览器历史集成。维护文件夹路径栈，通过 EventBus 发射 `navigate` 事件。
 - **EventBus.js** — 发布/订阅事件系统，解耦各组件。广泛用于跨组件通信（如 `navigate`、`card:dragstart`、`toolbar:newBookmark`）。
 
@@ -47,14 +48,15 @@ BookmarkTab/
 - 状态变更时发射事件
 
 关键组件：
-- **BookmarkGrid.js** — 网格容器，渲染当前文件夹的书签卡片。负责 favicon 分批懒加载、卡片多选、拖拽排序、删除执行和刷新协调。文件夹子项数量通过 `BookmarkStore.getFolderChildCountMap()` 批量统计，避免逐卡片请求。
+- **BookmarkGrid.js** — 网格容器，渲染当前文件夹的书签卡片。负责 favicon 分批懒加载、卡片多选、拖拽排序、删除执行和刷新协调。拖拽排序落下时会先做本地 DOM 换位和 FLIP 动画，再同步 Chrome 书签，避免等待整页刷新造成卡顿。文件夹子项数量通过 `BookmarkStore.getFolderChildCountMap()` 批量统计，避免逐卡片请求。
 - **BookmarkCard.js** — 单张书签/文件夹卡片。支持拖拽、右键菜单、行内标题编辑、自定义图标、Toast 提示。
 - **Breadcrumb.js** — 面包屑导航栏。
 - **EditDialog.js** — 新建/编辑书签或文件夹弹窗。
+- **IconStudio.js** — 图标工坊弹窗/抽屉。支持统一 SVG 搜索、SVG 预览与直接应用，不接入模型 API 或生图功能。
 - **MoveDialog.js** — 右键菜单“移动到...”的目标文件夹选择弹窗。
 - **QuickFind.js** — 全局模糊搜索浮层（`/` 或 `Ctrl+F`）。书签结果按当前跳转方式打开，文件夹结果进入对应文件夹。
 - **Toolbar.js** — 顶部工具栏，自动隐藏行为。
-- **SettingsPanel.js** — 左下角设置菜单中的壁纸偏好模块，使用内置预设并将选择保存到 `localStorage`。
+- **SettingsPanel.js** — 左下角设置菜单中的壁纸偏好模块，仅保留浅色、暗色和自定义图片；自定义图片会压缩到本地存储可接受大小并反馈结果，支持填充、完整、拉伸、居中、平铺和背景模糊度调节，选择保存到 `localStorage`。
 
 ### CSS（./css/）
 
@@ -69,6 +71,7 @@ BookmarkTab/
 - `toolbar.css` — 工具栏与菜单触发按钮样式。
 - `breadcrumb.css` — 面包屑导航。
 - `quick-find.css` — 搜索浮层。
+- `icon-studio.css` — 图标工坊弹窗、候选 SVG 网格、预览区和触控粗指针布局。
 - `animations.css` — 卡片入场/悬停动画。
 - `shortcuts.css` — 快捷键提示弹窗。
 - `settings.css` / `wallpapers.css` — 左下角设置菜单中的壁纸网格，以及页面背景层样式。
@@ -94,7 +97,7 @@ BookmarkTab/
 
 **QuickFind 导航**：搜索结果中的书签按 `openMode` 使用 `chrome.tabs.create()` 或 `chrome.tabs.update()`；文件夹结果使用 `Router.push(id, title)` 进入文件夹。
 
-**图标工坊规划**：后续按 `docs/touch-icon-mvp-plan.md` 实施。手动模式由用户输入关键词实时查询 iconfont SVG 并直接应用；AI 模式默认使用 DeepSeek `deepseek-v4-flash` 根据书签名称和域名生成搜索词；Grsai 只在用户选择 SVG 后显式点击高清生成时调用。
+**图标工坊 MVP**：当前通过 `IconStudio` 接入右键菜单，并支持触控/手写笔长按卡片打开同一菜单。图标搜索是统一流程：默认关键词来自域名，用户可直接调整。`IconSourceProvider` 按比例混排 iconfont、Iconify 和 SVG API，并在候选卡片与状态栏显式标注来源。当前已移除模型 API 集成和生图功能，只保留 SVG 搜索、预览和直接应用。
 
 ## 开发指南
 

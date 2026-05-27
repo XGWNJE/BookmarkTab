@@ -14,6 +14,7 @@ class BookmarkGrid {
     this.isLoading = false;
     this.isRefreshingFavicons = false;
     this.faviconRefreshTimeout = null;
+    this.suppressNextMoveRefresh = false;
 
     this.init();
   }
@@ -33,7 +34,13 @@ class BookmarkGrid {
         await card.update({ title, url });
       }
     });
-    EventBus.on('moved', () => this.refresh());
+    EventBus.on('moved', () => {
+      if (this.suppressNextMoveRefresh) {
+        this.suppressNextMoveRefresh = false;
+        return;
+      }
+      this.refresh();
+    });
     EventBus.on('childrenReordered', () => this.refresh());
 
     // 监听卡片事件
@@ -47,6 +54,13 @@ class BookmarkGrid {
 
     EventBus.on('card:rename', async ({ id, title }) => {
       await BookmarkStore.update(id, title);
+    });
+
+    EventBus.on('icon:applied', ({ id, iconData }) => {
+      const card = this.cards.get(id);
+      if (card) {
+        card.updateIcon(iconData);
+      }
     });
 
     EventBus.on('card:select', ({ id, selected }) => {
@@ -82,9 +96,13 @@ class BookmarkGrid {
             newIndex = Math.max(0, newIndex - 1);
           }
 
+          this.applyOptimisticReorder(draggedId, targetId, position);
+          this.suppressNextMoveRefresh = true;
           await BookmarkStore.move(draggedId, targetNode.parentId, newIndex);
         } catch (err) {
+          this.suppressNextMoveRefresh = false;
           console.error('Reorder failed:', err);
+          await this.refresh();
         }
       }
     });
@@ -258,6 +276,42 @@ class BookmarkGrid {
     await BookmarkStore.remove(id, isFolder);
     this.cards.delete(id);
     this.selectedCards.delete(id);
+  }
+
+  applyOptimisticReorder(draggedId, targetId, position) {
+    const dragged = this.cards.get(draggedId)?.element;
+    const target = this.cards.get(targetId)?.element;
+    if (!dragged || !target || dragged === target) return;
+
+    const previousRects = new Map();
+    this.grid.querySelectorAll('.bookmark-card').forEach(card => {
+      previousRects.set(card, card.getBoundingClientRect());
+    });
+
+    if (position === 'before') {
+      this.grid.insertBefore(dragged, target);
+    } else {
+      this.grid.insertBefore(dragged, target.nextSibling);
+    }
+
+    this.grid.querySelectorAll('.bookmark-card').forEach(card => {
+      const previous = previousRects.get(card);
+      if (!previous) return;
+      const next = card.getBoundingClientRect();
+      const dx = previous.left - next.left;
+      const dy = previous.top - next.top;
+      if (!dx && !dy) return;
+
+      card.style.transform = `translate(${dx}px, ${dy}px)`;
+      card.style.transition = 'transform 0s';
+      requestAnimationFrame(() => {
+        card.style.transform = '';
+        card.style.transition = 'transform 180ms cubic-bezier(0.2, 0, 0, 1)';
+        window.setTimeout(() => {
+          card.style.transition = '';
+        }, 200);
+      });
+    });
   }
 
   clearSelection() {

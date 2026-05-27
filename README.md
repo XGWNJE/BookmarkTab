@@ -1,10 +1,10 @@
 # BookmarkTab
 
-> 触控友好的 Chrome 书签管理新标签页扩展，采用卡片式书签面板、玻璃拟态设计，并逐步引入高清图标工坊。
+> 触控友好的 Chrome 书签管理新标签页扩展，采用卡片式书签面板、玻璃拟态设计，并引入 SVG 图标工坊。
 
 ## 产品方向
 
-BookmarkTab 下一阶段面向远程平板触控 PC 的使用场景优化：减少 hover、右键和精细拖拽依赖，强化大卡片、长按选择、底部操作和高清图标管理。
+BookmarkTab 下一阶段面向远程平板触控 PC 的使用场景优化：减少 hover、右键和精细拖拽依赖，强化大卡片、长按选择、底部操作和 SVG 图标管理。
 
 图标方向详见 [MarkPad Touch And Icon Studio MVP Plan](docs/touch-icon-mvp-plan.md)。品牌视觉方向详见 [MarkPad Brand Visual Guide](docs/markpad-brand-visual-guide.md)。
 
@@ -17,8 +17,11 @@ BookmarkTab 下一阶段面向远程平板触控 PC 的使用场景优化：减�
 
 ### 书签操作
 - 右键菜单：重命名、刷新图标、自定义图标、恢复默认图标
+- 触控/手写笔长按卡片可打开同一操作菜单
 - 支持 PNG / JPG / WebP / GIF / ICO / SVG 文件上传，SVG 自动安全过滤
 - 图标上传限制：文件大小 1 KB – 1 MB，图片尺寸建议 ≥32×32
+- 图标工坊 MVP：多来源 SVG 搜索、iconfont 页面抽取、SVG 预览和直接应用
+- 壁纸设置仅保留浅色、暗色和自定义图片，自定义图片会自动压缩并反馈结果，支持缩放模式和背景模糊度调节
 - 新建书签/文件夹（`N` / `Shift+N`）
 - 书签跳转方式可切换（新标签页 / 当前页）
 - 卡片文字显示可切换（显示 / 隐藏标题）
@@ -65,16 +68,18 @@ BookmarkTab 下一阶段面向远程平板触控 PC 的使用场景优化：减�
 BookmarkTab/
 ├── components/          # UI 组件
 │   ├── BookmarkCard.js  # 书签卡片（拖拽、右键菜单、自定义图标、Toast 提示）
-│   ├── BookmarkGrid.js  # 网格容器（favicon 懒加载、排序）
+│   ├── BookmarkGrid.js  # 网格容器（favicon 懒加载、排序与拖拽换位）
 │   ├── Breadcrumb.js    # 面包屑导航
 │   ├── EditDialog.js    # 新建/编辑弹窗
+│   ├── IconStudio.js    # 图标工坊（SVG 搜索、预览和直接应用）
 │   ├── MoveDialog.js    # 移动书签弹窗
 │   ├── QuickFind.js     # 快速搜索
-│   ├── SettingsPanel.js # 左下角设置菜单中的壁纸偏好
+│   ├── SettingsPanel.js # 壁纸偏好（浅色/暗色/自定义图片、压缩、缩放、模糊度）
 │   └── Toolbar.js       # 顶部工具栏
 ├── core/                 # 数据层
 │   ├── BookmarkStore.js # 书签 API + favicon 缓存 + 自定义图标存储
 │   ├── EventBus.js      # 事件总线
+│   ├── IconSourceProvider.js    # iconfont / Iconify / SVG API 搜索源适配
 │   └── Router.js        # 导航路由
 ├── css/
 │   ├── main.css          # 样式入口
@@ -82,7 +87,7 @@ BookmarkTab/
 ├── icons/                # 扩展图标
 │   └── export.html       # 图标导出工具
 ├── docs/                 # 产品方向与 MVP 计划
-├── wallpapers/           # 历史壁纸资源
+├── wallpapers/           # 历史壁纸资源；当前设置使用内置浅色/暗色/自定义图片
 ├── main.js               # 应用入口
 └── manifest.json
 ```
@@ -111,11 +116,11 @@ node --check main.js
 | `storage` | 本地数据存储 |
 | `favicon` | 获取网站图标 |
 | `tabs` | 控制书签打开方式 |
+| `scripting` | 在已登录的 iconfont 搜索页中抽取 SVG |
 
 ## 待实现
 
 - 数据导出/导入（已有 `icons/export.html` 图标导出工具）
 - 触控优先底部操作栏与长按选择模式
-- 图标工坊：手动 SVG 选择、DeepSeek 搜索推荐、Grsai 高清生成
 - 批量操作
 - 使用频率统计

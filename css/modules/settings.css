@@ -93,11 +93,12 @@
 /* 壁纸网格 */
 .wallpaper-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .wallpaper-item {
+  position: relative;
   aspect-ratio: 16/9;
   width: 100%;
   padding: 0;
@@ -118,14 +119,127 @@
   border-color: var(--accent);
 }
 
-.wallpaper-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 .wallpaper-preview {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.wallpaper-name {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 6px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wallpaper-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.wallpaper-upload {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: var(--glass-bg);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.wallpaper-upload:hover {
+  background: var(--glass-bg-hover);
+}
+
+.wallpaper-upload input {
+  display: none;
+}
+
+.wallpaper-status {
+  min-height: 18px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.wallpaper-status.error {
+  color: var(--danger);
+}
+
+.wallpaper-fit-group {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.wallpaper-fit {
+  min-height: 40px;
+  padding: 0 8px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.wallpaper-fit:hover {
+  color: var(--text-primary);
+  background: var(--glass-bg-hover);
+}
+
+.wallpaper-fit.active {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.wallpaper-blur-control {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.wallpaper-blur-control span {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.wallpaper-blur-control strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.wallpaper-blur-control input {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+@media (max-width: 520px) {
+  .wallpaper-fit-group {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }

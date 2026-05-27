@@ -10,7 +10,14 @@
     "bookmarks",
     "storage",
     "favicon",
-    "tabs"
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://www.iconfont.cn/*",
+    "https://api.iconify.design/*",
+    "https://api.svgapi.com/*",
+    "https://cdn.svgapi.com/*"
   ],
   "icons": {
     "16": "icons/icon16.png",

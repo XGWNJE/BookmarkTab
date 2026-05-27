@@ -9,6 +9,7 @@ import Toolbar from './components/Toolbar.js';
 import EditDialog from './components/EditDialog.js';
 import MoveDialog from './components/MoveDialog.js';
 import QuickFind from './components/QuickFind.js';
+import IconStudio from './components/IconStudio.js';
 import BookmarkStore from './core/BookmarkStore.js';
 import SettingsPanel from './components/SettingsPanel.js';
 
@@ -33,6 +34,7 @@ class App {
     new EditDialog();
     new MoveDialog();
     new QuickFind();
+    new IconStudio();
     new SettingsPanel();
 
     // 应用已保存的卡片尺寸

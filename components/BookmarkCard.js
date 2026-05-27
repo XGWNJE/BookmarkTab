@@ -37,6 +37,10 @@ class BookmarkCard {
     this.selected = false;
     this.dragOver = false;
     this.isEditing = false;
+    this.longPressTimer = null;
+    this.longPressStart = null;
+    this.suppressNextClick = false;
+    this.currentDropPosition = null;
   }
 
   async render() {
@@ -148,6 +152,11 @@ class BookmarkCard {
     // 点击打开
     this.element.addEventListener('click', (e) => {
       if (this.isEditing) return;
+      if (this.suppressNextClick) {
+        this.suppressNextClick = false;
+        e.preventDefault();
+        return;
+      }
       if (e.ctrlKey || e.metaKey) {
         this.toggleSelect();
       } else {
@@ -165,6 +174,7 @@ class BookmarkCard {
 
     // 拖拽
     this.element.addEventListener('dragstart', (e) => {
+      this.cancelLongPress();
       this.element.classList.add('is-dragging');
       e.dataTransfer.setData('text/plain', this.data.id);
       e.dataTransfer.effectAllowed = 'move';
@@ -269,6 +279,39 @@ class BookmarkCard {
       e.preventDefault();
       this.showContextMenu(e.clientX, e.clientY);
     });
+
+    this.element.addEventListener('pointerdown', (e) => this.startLongPress(e));
+    this.element.addEventListener('pointermove', (e) => this.handleLongPressMove(e));
+    this.element.addEventListener('pointerup', () => this.cancelLongPress());
+    this.element.addEventListener('pointercancel', () => this.cancelLongPress());
+    this.element.addEventListener('pointerleave', () => this.cancelLongPress());
+  }
+
+  startLongPress(e) {
+    if (this.isEditing || (e.pointerType !== 'touch' && e.pointerType !== 'pen')) return;
+    this.cancelLongPress();
+    this.longPressStart = { x: e.clientX, y: e.clientY };
+    this.longPressTimer = window.setTimeout(() => {
+      this.suppressNextClick = true;
+      this.showContextMenu(e.clientX, e.clientY);
+    }, 550);
+  }
+
+  handleLongPressMove(e) {
+    if (!this.longPressTimer || !this.longPressStart) return;
+    const dx = Math.abs(e.clientX - this.longPressStart.x);
+    const dy = Math.abs(e.clientY - this.longPressStart.y);
+    if (dx > 10 || dy > 10) {
+      this.cancelLongPress();
+    }
+  }
+
+  cancelLongPress() {
+    if (this.longPressTimer) {
+      clearTimeout(this.longPressTimer);
+      this.longPressTimer = null;
+    }
+    this.longPressStart = null;
   }
 
   open() {
@@ -285,7 +328,11 @@ class BookmarkCard {
   }
 
   showDropIndicator(position) {
+    if (this.currentDropPosition === position && this.element.querySelector('.drop-indicator')) {
+      return;
+    }
     this.clearDropIndicator();
+    this.currentDropPosition = position;
     this.element.dataset.dropPosition = position;
     const indicator = document.createElement('div');
     indicator.className = `drop-indicator ${position === 'before' ? 'left' : 'right'}`;
@@ -293,6 +340,7 @@ class BookmarkCard {
   }
 
   clearDropIndicator() {
+    this.currentDropPosition = null;
     delete this.element.dataset.dropPosition;
     this.element.querySelectorAll('.drop-indicator').forEach(el => el.remove());
     this.element.classList.remove('drag-over');
@@ -393,6 +441,12 @@ class BookmarkCard {
       {
         label: hasCustomIcon ? '更换图标...' : '自定义图标...',
         action: () => this.pickCustomIcon(x, y)
+      },
+      {
+        label: '选择 SVG 图标',
+        action: () => EventBus.emit('iconStudio:open', {
+          bookmark: this.data
+        })
       },
     ];
 
