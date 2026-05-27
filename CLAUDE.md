@@ -2,6 +2,10 @@
 
 本文档为 Claude Code 提供本仓库的代码协作指引。
 
+## Verification
+
+项目不维护独立自动评测脚本。代码修改后优先运行与改动范围匹配的轻量检查，例如 `node --check <file>`。涉及扩展权限、入口、触控交互、弹窗、拖拽、图标工坊或 Chrome API 行为时，需要在 Chrome 扩展页面刷新后手动验证。
+
 ## 项目概述
 
 BookmarkTab 是一款 Chrome 扩展（Manifest V3），将新标签页替换为优雅的书签管理器。采用玻璃拟态设计，自动适配系统深浅色模式。直接读写 Chrome 原生书签数据。

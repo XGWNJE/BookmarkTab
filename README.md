@@ -1,6 +1,12 @@
 # BookmarkTab
 
-> 极简优雅的 Chrome 书签管理新标签页扩展，玻璃拟态设计，自动适配深浅色模式。
+> 触控友好的 Chrome 书签管理新标签页扩展，采用卡片式书签面板、玻璃拟态设计，并逐步引入高清图标工坊。
+
+## 产品方向
+
+BookmarkTab 下一阶段面向远程平板触控 PC 的使用场景优化：减少 hover、右键和精细拖拽依赖，强化大卡片、长按选择、底部操作和高清图标管理。
+
+图标方向详见 [MarkPad Touch And Icon Studio MVP Plan](docs/touch-icon-mvp-plan.md)。品牌视觉方向详见 [MarkPad Brand Visual Guide](docs/markpad-brand-visual-guide.md)。
 
 ## 功能
 
@@ -64,7 +70,7 @@ BookmarkTab/
 │   ├── EditDialog.js    # 新建/编辑弹窗
 │   ├── MoveDialog.js    # 移动书签弹窗
 │   ├── QuickFind.js     # 快速搜索
-│   ├── SettingsPanel.js # 设置面板（壁纸偏好，待重构）
+│   ├── SettingsPanel.js # 左下角设置菜单中的壁纸偏好
 │   └── Toolbar.js       # 顶部工具栏
 ├── core/                 # 数据层
 │   ├── BookmarkStore.js # 书签 API + favicon 缓存 + 自定义图标存储
@@ -75,7 +81,8 @@ BookmarkTab/
 │   └── modules/          # CSS 模块
 ├── icons/                # 扩展图标
 │   └── export.html       # 图标导出工具
-├── wallpapers/           # 壁纸资源（待重构）
+├── docs/                 # 产品方向与 MVP 计划
+├── wallpapers/           # 历史壁纸资源
 ├── main.js               # 应用入口
 └── manifest.json
 ```
@@ -88,13 +95,13 @@ BookmarkTab/
 
 ## 验证
 
-项目带有轻量 eval runner：
+项目不维护独立自动评测脚本。代码修改后建议按范围运行轻量检查：
 
 ```bash
-python evals/run.py --all
+node --check main.js
 ```
 
-代码修改后建议至少运行 `python evals/run.py --regression`。
+涉及多个 JS 文件时，对改动文件逐个运行 `node --check`。涉及扩展权限或入口时，同步检查 `manifest.json` 并在 `chrome://extensions/` 刷新扩展后手动验证。
 
 ## 权限
 
@@ -108,6 +115,7 @@ python evals/run.py --all
 ## 待实现
 
 - 数据导出/导入（已有 `icons/export.html` 图标导出工具）
-- 自定义壁纸系统（组件与资源已存在，待重构接入）
+- 触控优先底部操作栏与长按选择模式
+- 图标工坊：手动 SVG 选择、DeepSeek 搜索推荐、Grsai 高清生成
 - 批量操作
 - 使用频率统计

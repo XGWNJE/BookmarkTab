@@ -2,19 +2,21 @@
 
 本文档为 Codex 提供本仓库的代码协作指引。
 
-## Eval Harness
+## Verification
 
-项目使用 eval-driven development (EDD) 框架。Eval 定义文档与历史基线存放在 `.claude/evals/`，代码化检查脚本在 `evals/run.py`。
+项目不维护独立自动评测脚本。代码修改后优先运行与改动范围匹配的轻量检查：
 
-- **基线定义：** `.claude/evals/bookmarktab-core.md` — 8 项能力 eval + 3 项回归 eval
-- **运行日志：** `.claude/evals/bookmarktab-core.log`
-- **回归基线：** `.claude/evals/baseline.json`
+- JavaScript 语法检查：`node --check <file>`
+- Chrome 扩展清单检查：确认 `manifest.json` JSON 合法且权限与实际功能匹配
+- 文档变更：确认 README、AGENTS 和 `docs/` 中没有过时路径或未实现承诺
 
-每次代码变更后至少运行 `python evals/run.py --regression` 检查回归；涉及事件链、CSS import、SVG sanitizer 或模块导入时运行 `python evals/run.py --all`。
+涉及触控交互、弹窗、拖拽、图标工坊或 Chrome API 行为时，需要在 Chrome 扩展页面刷新后做手动验证。
 
 ## 项目概述
 
-BookmarkTab 是一款 Chrome 扩展（Manifest V3），将新标签页替换为优雅的书签管理器。采用玻璃拟态设计，自动适配系统深浅色模式。直接读写 Chrome 原生书签数据。
+BookmarkTab 是一款 Chrome 扩展（Manifest V3），将新标签页替换为触控友好的卡片式书签管理器。当前方向面向远程平板触控 PC 的使用场景，采用玻璃拟态设计，自动适配系统深浅色模式，并直接读写 Chrome 原生书签数据。
+
+下一阶段产品计划见 `docs/touch-icon-mvp-plan.md`：先跑通图标工坊 MVP，再逐步推进触控优先交互。品牌视觉规范见 `docs/markpad-brand-visual-guide.md`，后续 UI 和命名调整优先遵守该文档。
 
 ## 架构
 
@@ -24,6 +26,7 @@ BookmarkTab/
 ├── core/           # 数据层与系统基础设施
 ├── css/            # 样式：main.css 入口 + modules/ 模块
 │   └── modules/    # 按功能划分的 CSS 模块
+├── docs/           # 产品方向、MVP 计划与后续设计文档
 ├── icons/          # 扩展图标 + export.html（图标导出工具）
 ├── wallpapers/     # 历史壁纸资源；当前壁纸设置使用 SettingsPanel 内置预设
 ├── main.js         # 应用入口
@@ -90,6 +93,8 @@ BookmarkTab/
 **应用级职责**（`main.js`）：启动前初始化 `BookmarkStore.initStorage()`，装配组件，全局快捷键，卡片尺寸持久化（`localStorage`），拖拽区域协调，删除确认弹窗，菜单面板（跳转方式 + 卡片文字显隐切换 + 壁纸偏好），多选状态管理。
 
 **QuickFind 导航**：搜索结果中的书签按 `openMode` 使用 `chrome.tabs.create()` 或 `chrome.tabs.update()`；文件夹结果使用 `Router.push(id, title)` 进入文件夹。
+
+**图标工坊规划**：后续按 `docs/touch-icon-mvp-plan.md` 实施。手动模式由用户输入关键词实时查询 iconfont SVG 并直接应用；AI 模式默认使用 DeepSeek `deepseek-v4-flash` 根据书签名称和域名生成搜索词；Grsai 只在用户选择 SVG 后显式点击高清生成时调用。
 
 ## 开发指南
 
