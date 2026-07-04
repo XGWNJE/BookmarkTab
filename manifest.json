@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "BookmarkTab",
+  "name": "MarkPad",
   "version": "0.1.0",
-  "description": "极简书签管理新标签页",
+  "description": "面向触控操作的新标签页书签面板",
   "chrome_url_overrides": {
     "newtab": "index.html"
   },

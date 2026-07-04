@@ -2,3 +2,9 @@ node_modules/
 .DS_Store
 *.log
 .claude/
+.codex/
+.agents/
+.openharness/
+evals/
+utils/
+USERPROFILE/

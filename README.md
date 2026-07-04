@@ -1,42 +1,23 @@
-# BookmarkTab
+# MarkPad
 
-> 触控友好的 Chrome 书签管理新标签页扩展，采用卡片式书签面板、玻璃拟态设计，并引入 SVG 图标工坊。
+> 面向触控操作的新标签页书签面板。MarkPad 用卡片式书签、统一 SVG 图标和简洁工具头部替代传统书签树。
 
-## 产品方向
+## 当前状态
 
-BookmarkTab 下一阶段面向远程平板触控 PC 的使用场景优化：减少 hover、右键和精细拖拽依赖，强化大卡片、长按选择、底部操作和 SVG 图标管理。
+MarkPad 是一个 Chrome Manifest V3 扩展，会替换新标签页并直接读写 Chrome 原生书签数据。仓库历史上曾使用 `BookmarkTab` 作为产品名；从当前版本起，用户可见名称统一为 `MarkPad`。部分内部类名和文件名仍保留 `Bookmark*`，用于描述书签领域对象，不作为产品品牌。
 
-图标方向详见 [MarkPad Touch And Icon Studio MVP Plan](docs/touch-icon-mvp-plan.md)。品牌视觉方向详见 [MarkPad Brand Visual Guide](docs/markpad-brand-visual-guide.md)。
+视觉系统当前参考 `XGWNJE/visual-rules-collection` 的 Lumen Index 规范：温白/深灰背景、黑白骨架、轻边框、低阴影和克制密度。品牌方向见 [MarkPad Brand Visual Guide](docs/markpad-brand-visual-guide.md)，触控和图标工坊计划见 [MarkPad Touch And Icon Studio MVP Plan](docs/touch-icon-mvp-plan.md)。
 
 ## 功能
 
-### 导航
-- 面包屑导航，点击任意层级快速跳转
-- 浏览器前进/后退支持（`Alt+←` / `Backspace`）
-- 快速搜索（`/` 或 `Ctrl+F`），全局书签模糊搜索
-
-### 书签操作
-- 右键菜单：重命名、刷新图标、自定义图标、恢复默认图标
-- 触控/手写笔长按卡片可打开同一操作菜单
-- 支持 PNG / JPG / WebP / GIF / ICO / SVG 文件上传，SVG 自动安全过滤
-- 图标上传限制：文件大小 1 KB – 1 MB，图片尺寸建议 ≥32×32
-- 图标工坊 MVP：多来源 SVG 搜索、iconfont 页面抽取、SVG 预览和直接应用
-- 壁纸设置仅保留浅色、暗色和自定义图片，自定义图片会自动压缩并反馈结果，支持缩放模式和背景模糊度调节
-- 新建书签/文件夹（`N` / `Shift+N`）
-- 书签跳转方式可切换（新标签页 / 当前页）
-- 卡片文字显示可切换（显示 / 隐藏标题）
-
-### 拖拽交互
-- 卡片间拖拽排序
-- 拖入文件夹（中心区域）
-- 拖到左侧 → 文件夹树面板，悬停高亮
-- 拖到右侧 → 删除确认
-
-### 视觉
-- 玻璃拟态背景 + 柔和阴影
-- 书签卡片尺寸可调（`=` / `-` 键）
-- 文件夹默认图标为 CSS 绘制（标签页 + 主体造型）
-- 自动跟随系统深浅色模式
+- 卡片式书签和文件夹网格，支持键盘、鼠标和触控/手写笔长按操作。
+- 顶部工具栏：新建书签、新建文件夹、面包屑导航、快速查找和工具菜单。
+- 快速搜索：`/` 或 `Ctrl+F` 全局搜索书签和文件夹。
+- 卡片操作：重命名、移动、删除、刷新 favicon、自定义图标、选择 SVG 图标。
+- 图标工坊：多来源 SVG 搜索、候选来源标注、预览和直接应用；不接入模型 API。
+- 统一本地图标库：应用自身图标由 `core/IconLibrary.js` 输出，真实网站 favicon 和用户自定义图标保留原样。
+- 壁纸偏好：浅色、暗色和自定义图片，支持缩放模式和背景模糊度。
+- 卡片文字显示、打开方式和卡片尺寸可配置。
 
 ## 快捷键
 
@@ -51,76 +32,57 @@ BookmarkTab 下一阶段面向远程平板触控 PC 的使用场景优化：减�
 | `Delete` | 删除选中项 |
 | `Ctrl+Click` | 多选 |
 | `=` / `-` | 放大 / 缩小卡片 |
-| `Escape` | 关闭弹窗 |
+| `Escape` | 关闭弹窗或工具面板 |
 
 ## 安装
 
-1. 打开 Chrome，进入 `chrome://extensions/`
-2. 开启右上角「开发者模式」
-3. 点击「加载已解压的扩展程序」，选择项目根目录
-4. 打开新标签页即可使用
+1. 打开 Chrome，进入 `chrome://extensions/`。
+2. 开启右上角「开发者模式」。
+3. 点击「加载已解压的扩展程序」，选择本仓库根目录。
+4. 打开新标签页即可使用 MarkPad。
 
-修改代码后在 `chrome://extensions/` 点击刷新按钮。
+修改代码后，在 `chrome://extensions/` 点击扩展卡片上的刷新按钮。
 
 ## 项目结构
 
 ```
-BookmarkTab/
+MarkPad/
 ├── components/          # UI 组件
-│   ├── BookmarkCard.js  # 书签卡片（拖拽、右键菜单、自定义图标、Toast 提示）
-│   ├── BookmarkGrid.js  # 网格容器（favicon 懒加载、排序与拖拽换位）
-│   ├── Breadcrumb.js    # 面包屑导航
-│   ├── EditDialog.js    # 新建/编辑弹窗
-│   ├── IconStudio.js    # 图标工坊（SVG 搜索、预览和直接应用）
-│   ├── MoveDialog.js    # 移动书签弹窗
-│   ├── QuickFind.js     # 快速搜索
-│   ├── SettingsPanel.js # 壁纸偏好（浅色/暗色/自定义图片、压缩、缩放、模糊度）
-│   └── Toolbar.js       # 顶部工具栏
-├── core/                 # 数据层
-│   ├── BookmarkStore.js # 书签 API + favicon 缓存 + 自定义图标存储
-│   ├── EventBus.js      # 事件总线
-│   ├── IconSourceProvider.js    # iconfont / Iconify / SVG API 搜索源适配
-│   └── Router.js        # 导航路由
-├── css/
-│   ├── main.css          # 样式入口
-│   └── modules/          # CSS 模块
-├── icons/                # 扩展图标
-│   └── export.html       # 图标导出工具
-├── docs/                 # 产品方向与 MVP 计划
-├── wallpapers/           # 历史壁纸资源；当前设置使用内置浅色/暗色/自定义图片
-├── main.js               # 应用入口
-└── manifest.json
+├── core/                # 数据层、路由、事件总线、图标库和外部图标源适配
+├── css/                 # main.css 入口 + modules/ 模块化样式
+├── docs/                # 品牌、触控和图标工坊计划
+├── icons/               # 扩展图标和 export.html 导出工具
+├── wallpapers/          # 历史壁纸资源；当前设置使用 SettingsPanel 内置预设
+├── index.html           # 新标签页入口
+├── main.js              # 应用装配与全局交互
+└── manifest.json        # Chrome 扩展清单
 ```
 
 ## 技术栈
 
 - 原生 JavaScript（ES2020+）
 - Chrome Extensions Manifest V3
-- CSS3（`backdrop-filter` 玻璃拟态）
+- CSS3 模块化样式
+- 无构建步骤、无 npm 运行依赖
 
 ## 验证
 
-项目不维护独立自动评测脚本。代码修改后建议按范围运行轻量检查：
+项目不维护独立自动评测脚本。代码修改后按范围运行：
 
-```bash
+```powershell
 node --check main.js
+node -e "JSON.parse(require('fs').readFileSync('manifest.json','utf8'))"
+git diff --check
 ```
 
-涉及多个 JS 文件时，对改动文件逐个运行 `node --check`。涉及扩展权限或入口时，同步检查 `manifest.json` 并在 `chrome://extensions/` 刷新扩展后手动验证。
+涉及触控交互、弹窗、拖拽、图标工坊或 Chrome API 行为时，需要刷新扩展后做运行态验证。
 
 ## 权限
 
 | 权限 | 用途 |
 |------|------|
 | `bookmarks` | 读写 Chrome 书签 |
-| `storage` | 本地数据存储 |
+| `storage` | 保存 favicon、自定义图标和偏好 |
 | `favicon` | 获取网站图标 |
-| `tabs` | 控制书签打开方式 |
+| `tabs` | 控制书签打开方式与 iconfont 辅助页面 |
 | `scripting` | 在已登录的 iconfont 搜索页中抽取 SVG |
-
-## 待实现
-
-- 数据导出/导入（已有 `icons/export.html` 图标导出工具）
-- 触控优先底部操作栏与长按选择模式
-- 批量操作
-- 使用频率统计

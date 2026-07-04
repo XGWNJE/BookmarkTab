@@ -1,25 +1,21 @@
-/* ===== 拖拽侧边区域 ===== */
-
-/* 左侧移动面板 */
 .drag-move-panel {
   position: fixed;
   top: 0;
   left: 0;
-  width: 220px;
+  width: 260px;
   height: 100%;
-  padding: 72px 0 24px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur-strong);
-  -webkit-backdrop-filter: var(--glass-blur-strong);
-  border-right: 1px solid var(--glass-border);
+  padding: 88px 0 var(--space-6);
   display: flex;
   flex-direction: column;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  box-shadow: var(--shadow-dialog);
   z-index: 500;
-  /* 默认隐藏：滑出到左侧 */
   transform: translateX(-100%);
   opacity: 0;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.2s ease;
+  transition:
+    transform var(--transition-base),
+    opacity var(--transition-base);
   pointer-events: none;
 }
 
@@ -31,54 +27,64 @@
 
 .drag-panel-header {
   flex-shrink: 0;
-  padding: 0 20px 12px;
-  font-size: var(--font-size-sm);
-  font-weight: 600;
+  padding: 0 var(--space-5) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
   color: var(--text-secondary);
-  letter-spacing: 0.05em;
+  font-size: var(--font-size-xs);
+  font-weight: 650;
+  letter-spacing: 0;
   text-transform: uppercase;
-  border-bottom: 1px solid var(--glass-border);
 }
 
-/* 文件夹树滚动区 */
 .drag-folder-tree {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 8px 0;
+  padding: var(--space-2);
 }
 
-/* 文件夹树节点 */
 .drag-folder-item {
+  min-height: 38px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 16px;
-  font-size: var(--font-size-base);
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md);
   color: var(--text-secondary);
   cursor: pointer;
-  white-space: nowrap;
+  font-size: var(--font-size-sm);
   overflow: hidden;
   text-overflow: ellipsis;
-  border-radius: 0;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  white-space: nowrap;
   user-select: none;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .drag-folder-item:hover {
-  background: var(--glass-bg-hover);
+  background: var(--color-bg-soft);
   color: var(--text-primary);
 }
 
 .drag-folder-item.drag-target {
-  background: var(--accent);
-  color: #fff;
+  background: var(--color-action);
+  color: var(--color-action-text);
 }
 
 .drag-folder-item .folder-icon {
-  flex-shrink: 0;
-  font-size: 14px;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   opacity: 0.7;
+}
+
+.drag-folder-item .folder-icon .app-icon {
+  width: 16px;
+  height: 16px;
 }
 
 .drag-folder-item .folder-name {
@@ -87,30 +93,27 @@
   text-overflow: ellipsis;
 }
 
-/* 子级缩进用 padding-left，通过 JS 内联 style 注入 */
-
-/* ===== 右侧删除区域 ===== */
 .drag-delete-zone {
   position: fixed;
   top: 0;
   right: 0;
-  width: 220px;
+  width: 240px;
   height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: var(--space-3);
   z-index: 500;
-  /* 默认隐藏：滑出到右侧 */
   transform: translateX(100%);
   opacity: 0;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.2s ease;
+  transition:
+    transform var(--transition-base),
+    opacity var(--transition-base),
+    background var(--transition-base);
   pointer-events: none;
-  /* 偏红纯色底色 */
-  background: rgba(139, 69, 69, 0.85);
-  border-left: 1px solid rgba(255, 80, 80, 0.4);
+  background: color-mix(in srgb, var(--danger) 12%, var(--color-surface));
+  border-left: 1px solid color-mix(in srgb, var(--danger) 28%, var(--color-border));
 }
 
 .drag-delete-zone.visible {
@@ -119,43 +122,37 @@
   pointer-events: auto;
 }
 
-/* 悬停到删除区时加深提示 */
 .drag-delete-zone.over {
-  background: rgba(139, 69, 69, 0.95);
-  border-left-color: rgba(255, 80, 80, 0.7);
+  background: color-mix(in srgb, var(--danger) 18%, var(--color-surface));
 }
 
 .drag-delete-icon {
-  font-size: 28px;
-  opacity: 0.6;
-  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--danger) 42%, var(--color-border));
+  border-radius: var(--radius-pill);
+  color: var(--danger);
+  transition:
+    transform var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.drag-delete-icon .app-icon {
+  width: 26px;
+  height: 26px;
 }
 
 .drag-delete-zone.over .drag-delete-icon {
-  opacity: 1;
-  transform: scale(1.15);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  transform: scale(1.06);
 }
 
 .drag-delete-label {
-  font-size: var(--font-size-xs);
   color: var(--danger);
-  opacity: 0.7;
+  font-size: var(--font-size-sm);
+  font-weight: 620;
   text-align: center;
-  transition: opacity var(--transition-fast);
-}
-
-.drag-delete-zone.over .drag-delete-label {
-  opacity: 1;
-}
-
-@media (prefers-color-scheme: dark) {
-  .drag-delete-zone {
-    background: rgba(80, 30, 30, 0.9);
-    border-left-color: rgba(255, 80, 80, 0.5);
-  }
-
-  .drag-delete-zone.over {
-    background: rgba(100, 35, 35, 0.95);
-    border-left-color: rgba(255, 100, 100, 0.7);
-  }
 }

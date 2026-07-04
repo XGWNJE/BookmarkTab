@@ -11,8 +11,8 @@ class SettingsPanel {
     this.maxCustomImageChars = 2400000;
 
     this.wallpapers = [
-      { id: 'light', name: '浅色', type: 'color', value: '#e8e8ed' },
-      { id: 'dark', name: '暗色', type: 'color', value: '#2c2c2e' },
+      { id: 'light', name: '浅色', type: 'color', value: '#fafaf7' },
+      { id: 'dark', name: '暗色', type: 'color', value: '#181817' },
       { id: 'custom', name: '自定义', type: 'custom', value: '' },
     ];
     this.fitModes = [
@@ -263,7 +263,7 @@ class SettingsPanel {
     const image = localStorage.getItem(this.customImageKey);
     return image
       ? `background-image:url(${image});background-size:cover;background-position:center;`
-      : 'background:linear-gradient(135deg,#4b5563,#111827);';
+      : 'background:#f4f3ee;';
   }
 }
 

@@ -4,6 +4,7 @@
 import EventBus from '../core/EventBus.js';
 import BookmarkStore from '../core/BookmarkStore.js';
 import Router from '../core/Router.js';
+import { iconSvg } from '../core/IconLibrary.js';
 
 class QuickFind {
   constructor() {
@@ -97,7 +98,7 @@ class QuickFind {
 
     this.resultsContainer.innerHTML = this.results.map((result, index) => `
       <div class="quick-find-item" data-index="${index}">
-        <span class="quick-find-item-icon">${result.url ? '🔖' : '📁'}</span>
+        <span class="quick-find-item-icon">${iconSvg(result.url ? 'bookmark' : 'folder')}</span>
         <div class="quick-find-item-info">
           <div class="quick-find-item-title">${this.escapeHtml(result.title)}</div>
           ${result.url ? `<div class="quick-find-item-url">${this.escapeHtml(result.url)}</div>` : ''}

@@ -1,9 +1,6 @@
 .settings-panel {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -16,67 +13,63 @@
 
 .settings-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  inset: 0;
+  background: rgba(17, 17, 17, 0.34);
 }
 
 .settings-content {
   position: relative;
-  width: 90%;
-  max-width: 480px;
-  max-height: 80vh;
-  background: rgba(30, 30, 50, 0.98);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-dialog);
+  width: min(90vw, 520px);
+  max-height: 84vh;
   overflow: hidden;
-  animation: slideUp 0.2s ease;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-dialog);
+  animation: slideUp 220ms var(--ease-lumen);
 }
 
 .settings-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--glass-border);
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .settings-header h3 {
-  font-size: var(--font-size-lg);
-  font-weight: 600;
   color: var(--text-primary);
+  font-size: var(--font-size-lg);
+  font-weight: 620;
 }
 
 .settings-close {
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  min-height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   color: var(--text-secondary);
-  font-size: 18px;
-  transition: all var(--transition-fast);
+  font-size: 20px;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .settings-close:hover {
-  background: var(--glass-bg-hover);
+  background: var(--color-bg-soft);
   color: var(--text-primary);
 }
 
 .settings-body {
-  padding: 20px;
+  max-height: calc(84vh - 78px);
   overflow-y: auto;
-  max-height: calc(80vh - 60px);
+  padding: var(--space-6);
 }
 
 .settings-section {
-  margin-bottom: 24px;
+  margin-bottom: var(--space-6);
 }
 
 .settings-section:last-child {
@@ -84,39 +77,41 @@
 }
 
 .settings-section h4 {
-  margin-bottom: 12px;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
+  margin-bottom: var(--space-3);
   color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 560;
 }
 
-/* 壁纸网格 */
 .wallpaper-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: var(--space-3);
 }
 
 .wallpaper-item {
   position: relative;
-  aspect-ratio: 16/9;
   width: 100%;
+  aspect-ratio: 16 / 9;
   padding: 0;
-  border-radius: var(--radius-sm);
   overflow: hidden;
+  background: var(--color-bg-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  border: 2px solid transparent;
-  background: transparent;
-  transition: all var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .wallpaper-item:hover {
-  border-color: rgba(255, 255, 255, 0.3);
-  transform: scale(1.05);
+  border-color: var(--color-border-strong);
+  transform: translateY(-1px);
 }
 
 .wallpaper-item.active {
-  border-color: var(--accent);
+  border-color: var(--color-action);
+  box-shadow: 0 0 0 3px var(--color-focus);
 }
 
 .wallpaper-preview {
@@ -127,14 +122,18 @@
 
 .wallpaper-name {
   position: absolute;
-  left: 6px;
-  right: 6px;
-  bottom: 6px;
-  padding: 3px 6px;
-  border-radius: 6px;
-  background: rgba(0, 0, 0, 0.45);
+  left: var(--space-2);
+  right: var(--space-2);
+  bottom: var(--space-2);
+  min-height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  background: rgba(17, 17, 17, 0.72);
   color: #fff;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   line-height: 1.2;
   text-align: center;
   white-space: nowrap;
@@ -145,8 +144,8 @@
 .wallpaper-controls {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 12px;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
 }
 
 .wallpaper-upload {
@@ -154,18 +153,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-sm);
-  background: var(--glass-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
   color: var(--text-primary);
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-weight: 560;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
 .wallpaper-upload:hover {
-  background: var(--glass-bg-hover);
+  background: var(--color-bg-soft);
+  border-color: var(--color-border-strong);
 }
 
 .wallpaper-upload input {
@@ -175,7 +177,7 @@
 .wallpaper-status {
   min-height: 18px;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   line-height: 1.4;
 }
 
@@ -186,60 +188,65 @@
 .wallpaper-fit-group {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 6px;
+  gap: var(--space-2);
 }
 
 .wallpaper-fit {
   min-height: 40px;
-  padding: 0 8px;
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-sm);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
   background: transparent;
   color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--font-size-xs);
+  font-weight: 560;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
 .wallpaper-fit:hover {
   color: var(--text-primary);
-  background: var(--glass-bg-hover);
+  background: var(--color-bg-soft);
+  border-color: var(--color-border-strong);
 }
 
 .wallpaper-fit.active {
-  color: #fff;
-  background: var(--accent);
-  border-color: var(--accent);
+  color: var(--color-action-text);
+  background: var(--color-action);
+  border-color: var(--color-action);
 }
 
 .wallpaper-blur-control {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
   color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--font-size-xs);
+  font-weight: 560;
 }
 
 .wallpaper-blur-control span {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .wallpaper-blur-control strong {
   color: var(--text-primary);
-  font-weight: 600;
+  font-weight: 620;
 }
 
 .wallpaper-blur-control input {
   width: 100%;
-  accent-color: var(--accent);
+  accent-color: var(--color-action);
 }
 
 @media (max-width: 520px) {
-  .wallpaper-fit-group {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .wallpaper-fit-group,
+  .wallpaper-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

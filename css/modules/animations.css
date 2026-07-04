@@ -1,33 +1,30 @@
-/* 卡片加载动效 - 依次从下淡入 */
-.bookmark-card {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
 .bookmark-card.loaded {
-  animation: cardFadeIn 0.3s ease forwards;
+  animation: cardFadeIn 260ms var(--ease-lumen);
 }
 
 @keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-/* 进入文件夹滑入动效 */
 .bookmark-grid.slide-in-left .bookmark-card {
-  animation: slideInLeft 0.3s ease forwards;
+  animation: slideInLeft 260ms var(--ease-lumen) forwards;
 }
 
 .bookmark-grid.slide-in-right .bookmark-card {
-  animation: slideInRight 0.3s ease forwards;
+  animation: slideInRight 260ms var(--ease-lumen) forwards;
 }
 
 @keyframes slideInLeft {
   from {
     opacity: 0;
-    transform: translateX(30px);
+    transform: translateX(24px);
   }
   to {
     opacity: 1;
@@ -38,7 +35,7 @@
 @keyframes slideInRight {
   from {
     opacity: 0;
-    transform: translateX(-30px);
+    transform: translateX(-24px);
   }
   to {
     opacity: 1;
@@ -46,71 +43,67 @@
   }
 }
 
-/* 删除卡片缩放淡出 */
 .bookmark-card.removing {
-  animation: cardRemove 0.25s ease forwards;
+  animation: cardRemove 220ms var(--ease-lumen) forwards;
 }
 
 @keyframes cardRemove {
   to {
     opacity: 0;
-    transform: scale(0.8);
+    transform: scale(0.94);
   }
 }
 
-/* 新建卡片从0缩放到1 */
 .bookmark-card.adding {
-  animation: cardAdd 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: cardAdd 260ms var(--ease-lumen) forwards;
 }
 
 @keyframes cardAdd {
   from {
     opacity: 0;
-    transform: scale(0);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: translateY(0);
   }
 }
 
-/* 抖动警告（删除确认） */
 .bookmark-card.shake {
-  animation: cardShake 0.4s ease;
+  animation: cardShake 360ms var(--ease-lumen);
 }
 
 @keyframes cardShake {
   0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-5px); }
-  40% { transform: translateX(5px); }
-  60% { transform: translateX(-5px); }
-  80% { transform: translateX(5px); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
 }
 
-/* 拖拽中卡片半透明 */
 .bookmark-card.is-dragging {
   opacity: 0.5;
-  transform: scale(0.95);
+  transform: scale(0.98);
 }
 
-/* 拖拽目标区域指示 */
 .bookmark-grid.drag-active .bookmark-card:not(.is-dragging) {
-  transition: transform 0.15s ease, border-color 0.15s ease;
+  transition:
+    transform var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
 .bookmark-grid.drag-active .bookmark-card.drop-target {
-  border-color: var(--accent);
-  background: rgba(99, 179, 237, 0.1);
+  border-color: var(--color-action);
+  background: color-mix(in srgb, var(--color-info) 8%, var(--color-surface));
 }
 
-/* 淡入淡出 */
 .fade-enter {
   opacity: 0;
 }
 
 .fade-enter-active {
   opacity: 1;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--transition-base);
 }
 
 .fade-exit {
@@ -119,5 +112,5 @@
 
 .fade-exit-active {
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--transition-base);
 }

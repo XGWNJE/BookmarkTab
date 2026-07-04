@@ -1,15 +1,16 @@
 .breadcrumb {
-  display: inline-flex;
+  flex: 1 1 auto;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  margin-bottom: 16px;
+  justify-content: center;
+  gap: var(--space-1);
+  min-width: 0;
   max-width: 100%;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
+  min-height: 40px;
+  padding: var(--space-1);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
   z-index: 50;
   opacity: 0;
   transition: opacity var(--transition-base), max-width var(--transition-base);
@@ -21,29 +22,50 @@
 }
 
 .breadcrumb-item {
-  padding: 4px 10px;
-  border-radius: var(--radius-md);
+  max-width: min(240px, 32vw);
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
   color: var(--text-secondary);
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   cursor: pointer;
   white-space: nowrap;
-  transition: all var(--transition-fast);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .breadcrumb-item:hover {
-  background: var(--glass-bg-hover);
+  background: var(--color-bg-soft);
   color: var(--text-primary);
 }
 
 .breadcrumb-item.active {
-  color: var(--text-primary);
-  font-weight: 500;
+  background: var(--color-action);
+  color: var(--color-action-text);
+  font-weight: 560;
   cursor: default;
 }
 
 .breadcrumb-separator {
   color: var(--text-tertiary);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   flex-shrink: 0;
   user-select: none;
+}
+
+@media (max-width: 760px) {
+  .breadcrumb {
+    justify-content: flex-start;
+  }
+
+  .breadcrumb-item {
+    max-width: 28vw;
+    padding: 0 var(--space-2);
+    font-size: var(--font-size-xs);
+  }
 }

@@ -4,7 +4,8 @@
   padding: 0;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   overflow: hidden;
 }
@@ -13,16 +14,11 @@ body {
   font-family: var(--font-family);
   font-size: var(--font-size-base);
   color: var(--text-primary);
-  background: #e8e8ed;
+  background: var(--color-bg);
+  letter-spacing: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   user-select: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  body {
-    background: #2c2c2e;
-  }
 }
 
 #app {
@@ -33,13 +29,26 @@ body {
   flex-direction: column;
 }
 
-/* 隐藏/显示 */
 .hidden {
   display: none !important;
 }
 
-/* 通用按钮 */
+.app-icon {
+  width: 1.15em;
+  height: 1.15em;
+  display: block;
+  flex: 0 0 auto;
+  color: currentColor;
+}
+
+[data-icon] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 button {
+  min-height: 40px;
   font-family: inherit;
   font-size: inherit;
   border: none;
@@ -52,13 +61,16 @@ button:focus {
   outline: none;
 }
 
-button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+button:focus-visible,
+[tabindex]:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
 }
 
-/* 通用输入 */
-input {
+input,
+textarea {
   font-family: inherit;
   font-size: inherit;
   border: none;
@@ -66,14 +78,19 @@ input {
   color: inherit;
 }
 
-input:focus {
+input:focus,
+textarea:focus {
   outline: none;
 }
 
-/* 滚动条 - 浅色模式 */
+::selection {
+  color: var(--color-action-text);
+  background: var(--color-action);
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -81,21 +98,24 @@ input:focus {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
+  background: var(--color-border-strong);
+  border: 2px solid transparent;
+  border-radius: var(--radius-pill);
+  background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--text-tertiary);
+  background-clip: padding-box;
 }
 
-/* 滚动条 - 深色模式 */
-@media (prefers-color-scheme: dark) {
-  ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
   }
 }

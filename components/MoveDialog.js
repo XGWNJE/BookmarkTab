@@ -3,6 +3,7 @@
  */
 import EventBus from '../core/EventBus.js';
 import BookmarkStore from '../core/BookmarkStore.js';
+import { iconSvg } from '../core/IconLibrary.js';
 
 class MoveDialog {
   constructor() {
@@ -64,7 +65,7 @@ class MoveDialog {
 
       const icon = document.createElement('span');
       icon.className = 'folder-icon';
-      icon.textContent = '📁';
+      icon.innerHTML = iconSvg('folder');
 
       const name = document.createElement('span');
       name.className = 'folder-name';
@@ -107,25 +108,42 @@ class MoveDialog {
 const style = document.createElement('style');
 style.textContent = `
   .folder-tree-item {
+    min-height: 38px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
+    gap: var(--space-2);
+    padding: 0 var(--space-3);
     cursor: pointer;
-    border-radius: var(--radius-xs);
-    transition: background var(--transition-fast);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    transition: background var(--transition-fast), color var(--transition-fast);
   }
   .folder-tree-item:hover {
-    background: var(--glass-bg-hover);
+    background: var(--color-bg-soft);
+    color: var(--text-primary);
   }
   .folder-tree-item.selected {
-    background: rgba(99, 179, 237, 0.15);
-    color: var(--accent);
+    background: var(--color-action);
+    color: var(--color-action-text);
   }
   .folder-tree-item .folder-icon {
-    font-size: 16px;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+  }
+  .folder-tree-item .folder-icon .app-icon {
+    width: 16px;
+    height: 16px;
   }
   .folder-tree-item .folder-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-size: var(--font-size-sm);
   }
 `;

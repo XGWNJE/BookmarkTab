@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BookmarkTab</title>
+  <title>MarkPad</title>
   <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
@@ -11,29 +11,37 @@
     <!-- 背景壁纸层 -->
     <div id="wallpaper" class="wallpaper"></div>
 
-    <!-- 顶部工具栏（悬停显示） -->
-    <header id="toolbar" class="toolbar hidden">
-      <button id="btn-new-bookmark" class="toolbar-btn" title="新建书签 (N)">
-        <span class="toolbar-icon">+</span>
-        <span class="toolbar-label">新建书签</span>
-      </button>
-      <button id="btn-new-folder" class="toolbar-btn" title="新建文件夹 (Shift+N)">
-        <span class="toolbar-icon">⊞</span>
-        <span class="toolbar-label">新建文件夹</span>
-      </button>
-      <div class="toolbar-spacer"></div>
-      <button id="btn-search" class="toolbar-btn" title="快速查找 (Ctrl+F 或 /)">
-        <span class="toolbar-icon">🔍</span>
-        <span class="toolbar-label">快速查找</span>
-      </button>
+    <!-- 顶部工具栏 -->
+    <header id="toolbar" class="toolbar">
+      <div class="toolbar-section toolbar-primary-actions">
+        <button id="btn-new-bookmark" class="toolbar-btn" title="新建书签 (N)">
+          <span class="toolbar-icon" data-icon="bookmark-plus"></span>
+          <span class="toolbar-label">新建书签</span>
+        </button>
+        <button id="btn-new-folder" class="toolbar-btn" title="新建文件夹 (Shift+N)">
+          <span class="toolbar-icon" data-icon="folder-plus"></span>
+          <span class="toolbar-label">新建文件夹</span>
+        </button>
+      </div>
+
+      <nav id="breadcrumb" class="breadcrumb">
+        <span class="breadcrumb-item" data-id="1">书签栏</span>
+      </nav>
+
+      <div class="toolbar-section toolbar-utility-actions">
+        <button id="btn-search" class="toolbar-btn" title="快速查找 (Ctrl+F 或 /)">
+          <span class="toolbar-icon" data-icon="search"></span>
+          <span class="toolbar-label">快速查找</span>
+        </button>
+        <button id="menu-trigger" class="toolbar-btn menu-trigger" title="工具">
+          <span class="toolbar-icon" data-icon="menu"></span>
+          <span class="toolbar-label">工具</span>
+        </button>
+      </div>
     </header>
 
     <!-- 书签内容区（卡片网格） -->
     <main id="content" class="content">
-      <!-- 面包屑导航 -->
-      <nav id="breadcrumb" class="breadcrumb">
-        <span class="breadcrumb-item" data-id="1">书签栏</span>
-      </nav>
       <!-- 网格滚动区 -->
       <div class="grid-scroll">
         <div class="grid-scroll-inner">
@@ -50,32 +58,13 @@
 
     <!-- 拖拽：右侧删除区域 -->
     <div id="drag-delete-zone" class="drag-delete-zone">
-      <div class="drag-delete-icon">🗑</div>
+      <div class="drag-delete-icon" data-icon="trash"></div>
       <div class="drag-delete-label">松手删除</div>
     </div>
 
-    <!-- 快捷键提示（左下角悬停气泡） -->
-    <div id="shortcuts-trigger" class="shortcuts-trigger" title="快捷键">?</div>
-    <div id="shortcuts-hint" class="shortcuts-hint">
-      <div class="shortcuts-title">快捷键</div>
-      <div class="shortcuts-list">
-        <div class="shortcut-item"><kbd>N</kbd> 新建书签</div>
-        <div class="shortcut-item"><kbd>Shift+N</kbd> 新建文件夹</div>
-        <div class="shortcut-item"><kbd>Ctrl+F</kbd> / <kbd>/</kbd> 快速查找</div>
-        <div class="shortcut-item"><kbd>Enter</kbd> 打开选中项</div>
-        <div class="shortcut-item"><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> 导航</div>
-        <div class="shortcut-item"><kbd>Backspace</kbd> 返回上级</div>
-        <div class="shortcut-item"><kbd>Delete</kbd> 删除选中项</div>
-        <div class="shortcut-item"><kbd>F2</kbd> 编辑选中项</div>
-        <div class="shortcut-item"><kbd>Ctrl+Click</kbd> 多选</div>
-        <div class="shortcut-item"><kbd>=</kbd> / <kbd>-</kbd> 放大 / 缩小卡片</div>
-      </div>
-    </div>
-
-    <!-- 菜单按钮（左下角，快捷键按钮右侧） -->
-    <div id="menu-trigger" class="menu-trigger" title="设置">☰</div>
+    <!-- 头部工具面板 -->
     <div id="menu-panel" class="menu-panel">
-      <div class="menu-panel-title">设置</div>
+      <div class="menu-panel-title">工具</div>
       <div class="menu-section">
         <div class="menu-section-label">书签跳转方式</div>
         <div class="menu-toggle-group" id="open-mode-group">
@@ -94,6 +83,21 @@
         <div class="menu-section-label">背景壁纸</div>
         <div id="wallpaper-grid" class="wallpaper-grid"></div>
       </div>
+      <div class="menu-section">
+        <div class="menu-section-label">快捷键</div>
+        <div class="shortcuts-list">
+          <div class="shortcut-item"><kbd>N</kbd> 新建书签</div>
+          <div class="shortcut-item"><kbd>Shift+N</kbd> 新建文件夹</div>
+          <div class="shortcut-item"><kbd>Ctrl+F</kbd> / <kbd>/</kbd> 快速查找</div>
+          <div class="shortcut-item"><kbd>Enter</kbd> 打开选中项</div>
+          <div class="shortcut-item"><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> 导航</div>
+          <div class="shortcut-item"><kbd>Backspace</kbd> 返回上级</div>
+          <div class="shortcut-item"><kbd>Delete</kbd> 删除选中项</div>
+          <div class="shortcut-item"><kbd>F2</kbd> 编辑选中项</div>
+          <div class="shortcut-item"><kbd>Ctrl+Click</kbd> 多选</div>
+          <div class="shortcut-item"><kbd>=</kbd> / <kbd>-</kbd> 放大 / 缩小卡片</div>
+        </div>
+      </div>
     </div>
 
     <!-- 快速查找弹窗 -->
@@ -111,7 +115,9 @@
       <div class="dialog-content">
         <div class="dialog-header">
           <h3 id="edit-dialog-title">新建书签</h3>
-          <button class="dialog-close" data-action="close">&times;</button>
+          <button class="dialog-close" data-action="close" aria-label="关闭">
+            <span data-icon="x"></span>
+          </button>
         </div>
         <div class="dialog-body">
           <div class="form-group">
@@ -137,7 +143,9 @@
       <div class="dialog-content">
         <div class="dialog-header">
           <h3>移动到…</h3>
-          <button class="dialog-close" data-action="close">&times;</button>
+          <button class="dialog-close" data-action="close" aria-label="关闭">
+            <span data-icon="x"></span>
+          </button>
         </div>
         <div class="dialog-body">
           <div id="move-dialog-tree" class="folder-tree"></div>
@@ -155,7 +163,9 @@
       <div class="dialog-content">
         <div class="dialog-header">
           <h3>确认删除</h3>
-          <button class="dialog-close" data-action="close">&times;</button>
+          <button class="dialog-close" data-action="close" aria-label="关闭">
+            <span data-icon="x"></span>
+          </button>
         </div>
         <div class="dialog-body">
           <p id="delete-confirm-message">确定要删除吗？</p>

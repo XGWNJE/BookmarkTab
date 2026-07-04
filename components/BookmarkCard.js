@@ -3,6 +3,7 @@
  */
 import EventBus from '../core/EventBus.js';
 import BookmarkStore from '../core/BookmarkStore.js';
+import { iconSvg } from '../core/IconLibrary.js';
 
 /** 判断存储值是否为原始 SVG 文本 */
 const isSvgRaw = (val) => typeof val === 'string' && val.trimStart().startsWith('<');
@@ -22,9 +23,15 @@ function applySvgToElement(el, svgText) {
 function applyImageToElement(el, url) {
   el.innerHTML = '';
   el.style.backgroundImage = `url(${url})`;
-  el.style.backgroundSize = 'cover';
+  el.style.backgroundSize = 'contain';
   el.style.backgroundPosition = 'center';
   el.style.backgroundRepeat = 'no-repeat';
+}
+
+function applyDefaultFolderIcon(el) {
+  el.innerHTML = iconSvg('folder', { className: 'app-icon card-folder-svg' });
+  el.style.backgroundImage = '';
+  el.style.backgroundSize = '';
 }
 
 class BookmarkCard {
@@ -73,6 +80,7 @@ class BookmarkCard {
         }
       } else {
         icon.classList.add('folder-default');
+        applyDefaultFolderIcon(icon);
       }
     } else {
       icon.classList.add('favicon');
@@ -86,6 +94,7 @@ class BookmarkCard {
           applySvgToElement(icon, iconData);
         } else {
           icon.style.backgroundImage = `url(${iconData})`;
+          icon.style.backgroundSize = customIcon ? 'contain' : '';
         }
       }
 
@@ -122,8 +131,8 @@ class BookmarkCard {
       meta.textContent = this.getDomain(this.data.url);
     }
 
-    info.appendChild(title);
     info.appendChild(meta);
+    info.appendChild(title);
 
     this.element.appendChild(iconWrapper);
     this.element.appendChild(gradient);
@@ -604,7 +613,9 @@ class BookmarkCard {
       <div class="dialog-content svg-paste-dialog">
         <div class="dialog-header">
           <h3>粘贴 SVG 代码</h3>
-          <button class="dialog-close" data-action="close">&times;</button>
+          <button class="dialog-close" data-action="close" aria-label="关闭">
+            ${iconSvg('x')}
+          </button>
         </div>
         <div class="dialog-body">
           <textarea class="svg-paste-input form-input" rows="8"
@@ -800,11 +811,9 @@ class BookmarkCard {
           applyImageToElement(iconEl, iconData);
         }
       } else {
-        // 恢复默认 CSS 色块
-        iconEl.innerHTML = '';
-        iconEl.style.backgroundImage = '';
-        iconEl.style.backgroundSize = '';
+        // 恢复默认文件夹图标
         iconEl.classList.add('folder-default');
+        applyDefaultFolderIcon(iconEl);
       }
     } else {
       const fallbackEl = iconEl.querySelector('.favicon-fallback');
@@ -814,11 +823,15 @@ class BookmarkCard {
           // SVG 注入后 fallback 被清除，不需要额外隐藏
         } else {
           iconEl.style.backgroundImage = `url(${iconData})`;
+          iconEl.style.backgroundSize = 'contain';
+          iconEl.style.backgroundPosition = 'center';
+          iconEl.style.backgroundRepeat = 'no-repeat';
           if (fallbackEl) fallbackEl.style.display = 'none';
         }
       } else {
         iconEl.innerHTML = '';
         iconEl.style.backgroundImage = 'none';
+        iconEl.style.backgroundSize = '';
         // 重新创建 fallback（SVG 注入时会被清除）
         const fb = document.createElement('div');
         fb.className = 'favicon-fallback';

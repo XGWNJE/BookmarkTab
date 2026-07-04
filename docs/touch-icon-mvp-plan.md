@@ -1,4 +1,4 @@
-﻿# MarkPad Touch And Icon Studio MVP Plan
+# MarkPad Touch And Icon Studio MVP Plan
 
 ## Direction
 
@@ -6,9 +6,13 @@ MarkPad 的产品定位是：
 
 > 面向远程平板触控操作的新标签页书签面板，优先保证手指低精度输入、快速打开、批量管理和统一 SVG 图标视觉。
 
-当前代码仍保留 `BookmarkTab` 文件名、扩展名和部分历史结构。MVP 阶段先不做全量重命名，先以 MarkPad 的产品方向实现图标工坊闭环；后续再按品牌视觉规范统一 `manifest.json`、README 标题、`index.html` title 和扩展图标。
+用户可见产品名已统一为 MarkPad，包括 `manifest.json`、README 标题、`index.html` title 和图标导出页。仓库目录和内部 `Bookmark*` 类名仍保留，用于描述书签领域对象；除非另有明确迁移需求，不做全量文件/类名重命名。
 
 生图效果未达到预期，当前方向明确移除模型 API 集成，只保留 SVG 搜索、预览和应用。这样可以降低复杂度、避免 API key 管理和生成结果不可控的问题，也更符合触控场景下的快速选择需求。
+
+当前主界面视觉参考 `XGWNJE/visual-rules-collection` 的 Lumen Index 规范统一既有界面风格：温白/深灰背景、黑白骨架、轻边框、胶囊按钮和低阴影。后续触控与图标工坊改动应继续使用 `css/modules/variables.css` 中的 Lumen 风格 token；除非另有明确需求，不应新增信息架构、品牌块、底部栏或装饰性视觉内容。
+
+应用自身图标已统一到 `core/IconLibrary.js` 的本地线性 SVG 图标库。真实网站 favicon、用户自定义图标和图标工坊候选 SVG 保留原始来源，不强制替换。
 
 ## Product Principles
 
@@ -23,8 +27,8 @@ MarkPad 的产品定位是：
 触控优化分阶段做，不阻塞图标 MVP：
 
 - 卡片默认触控尺寸更大，`pointer: coarse` 下自动进入触控密度。
-- 主要操作逐步下移到底部操作栏：返回、搜索、新建、选择模式、设置。
-- 长按卡片进入选择模式，选择模式内提供移动、删除、改图标、取消。
+- 主要操作当前集中到顶部工具栏和工具菜单：新建、搜索、面包屑、跳转方式、卡片文字和壁纸偏好。
+- 长按卡片打开与右键一致的操作菜单，避免触控用户依赖鼠标右键。
 - 删除继续沿用统一确认弹窗，文件夹删除显示包含子项数量。
 - 精细拖拽排序保留给鼠标模式；落下后先做本地换位动画再同步 Chrome 书签，触控排序后续单独设计。
 
@@ -100,16 +104,15 @@ class IconSourceProvider {
 
 MVP 不做：
 
-- 项目文件、类名和扩展清单的全量品牌重命名
+- 项目文件和类名的全量品牌重命名
 - 模型 API 接入
 - 生图或高清生成
 - API key 配置
 - 批量生成
 - 同域名批量应用
 - 图标历史版本管理
-- 本地图标库
 - 自动为所有书签生成图标
-- 触控底部操作栏完整改造
+- 独立底部操作栏改造；当前主控区保持在头部工具栏和工具菜单
 
 ## Acceptance Criteria
 
@@ -119,6 +122,7 @@ MVP 不做：
 - `manifest.json` 不包含 DeepSeek、Grsai 等模型 API host permission。
 - 主要 JS 文件通过 `node --check`。
 - 在 `chrome://extensions/` 刷新扩展后，MVP 主流程通过手动验证。
+- 用户可见产品名显示为 MarkPad；内部 `Bookmark*` 文件名只作为领域命名保留。
 - 项目不维护独立自动评测脚本；MVP 验收以语法检查、扩展加载检查和人工流程验证为准。
 
 ## Verification Checklist
@@ -134,5 +138,5 @@ MVP 不做：
 
 1. 架构占位：创建 `IconStudio`、`IconSourceProvider`。
 2. SVG 搜索模式：先跑通无 AI 的 SVG 搜索、候选展示、SVG 应用；iconfont 不稳定时按比例混排 Iconify / SVG API，并显式标注来源。
-3. 触控优化：把图标工坊和选择模式做成大按钮、底部抽屉、粗指针友好布局。
+3. 触控优化：让图标工坊、菜单和卡片操作在粗指针下保持可点击尺寸与稳定布局。
 4. 复盘后再决定是否做批量、同域名应用和图标历史。

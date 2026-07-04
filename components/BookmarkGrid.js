@@ -5,6 +5,7 @@ import EventBus from '../core/EventBus.js';
 import BookmarkStore from '../core/BookmarkStore.js';
 import Router from '../core/Router.js';
 import BookmarkCard from './BookmarkCard.js';
+import { iconSvg } from '../core/IconLibrary.js';
 
 class BookmarkGrid {
   constructor() {
@@ -241,7 +242,7 @@ class BookmarkGrid {
     const empty = document.createElement('div');
     empty.className = 'empty-state';
     empty.innerHTML = `
-      <div class="empty-icon">📂</div>
+      <div class="empty-icon">${iconSvg('folder')}</div>
       <div class="empty-text">文件夹为空</div>
       <div class="empty-hint">点击"新建书签"添加第一个书签</div>
     `;

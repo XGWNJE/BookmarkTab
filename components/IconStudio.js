@@ -1,6 +1,7 @@
 import EventBus from '../core/EventBus.js';
 import BookmarkStore from '../core/BookmarkStore.js';
 import IconSourceProvider from '../core/IconSourceProvider.js';
+import { iconSvg } from '../core/IconLibrary.js';
 
 class IconStudio {
   constructor() {
@@ -33,7 +34,9 @@ class IconStudio {
             <h3>图标工坊</h3>
             <div class="icon-studio-subtitle"></div>
           </div>
-          <button class="dialog-close" data-action="close">&times;</button>
+          <button class="dialog-close" data-action="close" aria-label="关闭">
+            ${iconSvg('x')}
+          </button>
         </div>
         <div class="icon-studio-body">
           <section class="icon-studio-section">

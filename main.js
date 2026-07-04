@@ -3,6 +3,7 @@
  */
 import EventBus from './core/EventBus.js';
 import Router from './core/Router.js';
+import { iconSvg, renderIcons } from './core/IconLibrary.js';
 import BookmarkGrid from './components/BookmarkGrid.js';
 import Breadcrumb from './components/Breadcrumb.js';
 import Toolbar from './components/Toolbar.js';
@@ -36,15 +37,13 @@ class App {
     new QuickFind();
     new IconStudio();
     new SettingsPanel();
+    renderIcons(document);
 
     // 应用已保存的卡片尺寸
     this.applyCardSize(this.cardSize);
 
     // 全局快捷键
     this.bindKeyboardShortcuts();
-
-    // 快捷键提示
-    this.bindShortcutsHint();
 
     // 菜单面板
     this.bindMenuPanel();
@@ -100,6 +99,8 @@ class App {
         document.querySelectorAll('.dialog, .settings-panel, .quick-find').forEach(el => {
           el.classList.add('hidden');
         });
+        document.getElementById('menu-panel')?.classList.remove('visible');
+        document.getElementById('menu-trigger')?.classList.remove('active');
       }
 
       // = / + 放大卡片，- 缩小卡片（不与 Ctrl+滚轮冲突）
@@ -174,28 +175,6 @@ class App {
     }
 
     cards[index]?.focus();
-  }
-
-  bindShortcutsHint() {    const hint = document.getElementById('shortcuts-hint');
-    const trigger = document.getElementById('shortcuts-trigger');
-    let hideTimeout;
-
-    const show = () => {
-      clearTimeout(hideTimeout);
-      hint.classList.add('visible');
-    };
-
-    const scheduleHide = () => {
-      hideTimeout = setTimeout(() => {
-        hint.classList.remove('visible');
-      }, 150);
-    };
-
-    // 鼠标悬停触发锚点或面板本身时显示
-    trigger.addEventListener('mouseenter', show);
-    trigger.addEventListener('mouseleave', scheduleHide);
-    hint.addEventListener('mouseenter', show);
-    hint.addEventListener('mouseleave', scheduleHide);
   }
 
   bindMenuPanel() {
@@ -475,7 +454,16 @@ class App {
       item.className = 'drag-folder-item';
       item.dataset.id = node.id;
       item.style.paddingLeft = `${depth * 16 + 16}px`;
-      item.innerHTML = `<span class="folder-icon">📁</span><span class="folder-name">${this._escapeHtml(node.title)}</span>`;
+      const icon = document.createElement('span');
+      icon.className = 'folder-icon';
+      icon.innerHTML = iconSvg('folder');
+
+      const name = document.createElement('span');
+      name.className = 'folder-name';
+      name.textContent = node.title;
+
+      item.appendChild(icon);
+      item.appendChild(name);
       container.appendChild(item);
 
       if (node.children?.length) {

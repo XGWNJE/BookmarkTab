@@ -1,14 +1,11 @@
 .dialog {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: fadeIn 0.15s ease;
+  animation: fadeIn 160ms var(--ease-lumen);
 }
 
 .dialog.hidden {
@@ -17,74 +14,75 @@
 
 .dialog-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  inset: 0;
+  background: rgba(17, 17, 17, 0.34);
 }
 
 .dialog-content {
   position: relative;
-  width: 90%;
-  max-width: 420px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
+  width: min(90vw, 440px);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
   box-shadow: var(--shadow-dialog);
-  animation: slideUp 0.2s ease;
+  animation: slideUp 220ms var(--ease-lumen);
+  overflow: hidden;
 }
 
 .dialog-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--glass-border);
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .dialog-header h3 {
-  font-size: var(--font-size-lg);
-  font-weight: 600;
   color: var(--text-primary);
+  font-size: var(--font-size-lg);
+  font-weight: 620;
+  line-height: 1.2;
 }
 
 .dialog-close {
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  min-height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   color: var(--text-secondary);
-  font-size: 18px;
-  transition: all var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.dialog-close .app-icon {
+  width: 18px;
+  height: 18px;
 }
 
 .dialog-close:hover {
-  background: var(--glass-bg-hover);
+  background: var(--color-bg-soft);
   color: var(--text-primary);
 }
 
 .dialog-body {
-  padding: 20px;
+  padding: var(--space-6);
+  color: var(--text-secondary);
+  line-height: 1.6;
 }
 
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  padding: 16px 20px;
-  border-top: 1px solid var(--glass-border);
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-6);
+  border-top: 1px solid var(--color-border);
 }
 
-/* 表单 */
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: var(--space-5);
 }
 
 .form-group:last-child {
@@ -93,42 +91,51 @@
 
 .form-group label {
   display: block;
-  margin-bottom: 6px;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
+  margin-bottom: var(--space-2);
   color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 560;
 }
 
 .form-input {
   width: 100%;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-sm);
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   color: var(--text-primary);
   font-size: var(--font-size-base);
-  transition: all var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+textarea.form-input {
+  min-height: 160px;
+  padding-block: var(--space-3);
+  line-height: 1.5;
 }
 
 .form-input:focus {
-  border-color: var(--accent);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--color-action);
+  background: var(--color-surface);
 }
 
 .form-input::placeholder {
   color: var(--text-tertiary);
 }
 
-/* Favicon 预览 */
 .favicon-preview {
-  margin-top: 12px;
+  margin-top: var(--space-3);
+  min-height: 56px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: var(--radius-sm);
-  min-height: 56px;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-bg-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
 }
 
 .favicon-preview img {
@@ -138,41 +145,49 @@
 }
 
 .favicon-preview .url-text {
-  font-size: var(--font-size-sm);
   color: var(--text-secondary);
+  font-size: var(--font-size-sm);
   word-break: break-all;
 }
 
-/* 按钮 */
 .btn {
-  padding: 10px 20px;
-  border-radius: var(--radius-sm);
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-pill);
   font-size: var(--font-size-sm);
-  font-weight: 500;
-  transition: all var(--transition-fast);
+  font-weight: 560;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.btn:active {
+  transform: translateY(1px);
 }
 
 .btn-primary {
-  background: var(--accent);
-  color: #fff;
+  background: var(--color-action);
+  color: var(--color-action-text);
 }
 
 .btn-primary:hover {
-  background: var(--accent-hover);
-}
-
-.btn-primary:active {
-  transform: scale(0.97);
+  background: var(--color-action-hover);
 }
 
 .btn-secondary {
-  background: var(--glass-bg);
+  background: var(--color-surface);
   color: var(--text-primary);
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--color-border);
 }
 
 .btn-secondary:hover {
-  background: var(--glass-bg-hover);
+  background: var(--color-bg-soft);
+  border-color: var(--color-border-strong);
 }
 
 .btn-danger {
@@ -184,24 +199,23 @@
   background: var(--danger-hover);
 }
 
-/* SVG 粘贴预览框 */
 .svg-paste-preview {
-  margin-top: 12px;
+  margin-top: var(--space-3);
   width: 100%;
-  height: 80px;
-  background: var(--glass-bg);
-  border: 1px dashed var(--glass-border);
-  border-radius: var(--radius-sm);
+  height: 96px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  background: var(--color-bg-soft);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
   transition: border-color var(--transition-fast);
 }
 
 .svg-paste-preview:not(:empty) {
   border-style: solid;
-  border-color: var(--accent);
+  border-color: var(--color-action);
 }
 
 .svg-paste-preview svg {
@@ -210,9 +224,8 @@
   display: block;
 }
 
-/* SVG 粘贴对话框宽一些以容纳代码 */
 .dialog-content.svg-paste-dialog {
-  max-width: 540px;
+  max-width: 560px;
 }
 
 @keyframes fadeIn {
@@ -223,7 +236,7 @@
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
