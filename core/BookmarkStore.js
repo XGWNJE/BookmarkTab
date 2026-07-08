@@ -2,6 +2,7 @@
  * BookmarkStore - 数据层：封装 chrome.bookmarks API + 事件监听
  */
 import EventBus from './EventBus.js';
+import { CUSTOM_ICON_STORAGE_KEY, RESOLVED_ICON_STORAGE_KEY } from './icons/IconStorage.js';
 
 // Favicon 缓存状态标记
 const FAVICON_FAILED = '__FAILED__';
@@ -16,8 +17,11 @@ class BookmarkStore {
     this.faviconCache = null; // 延迟加载
     this.faviconStorageKey = 'favicon_cache_v2';
     // 用户自定义图标缓存
-    this.customIconStorageKey = 'custom_icon_cache';
+    this.customIconStorageKey = CUSTOM_ICON_STORAGE_KEY;
     this.customIcons = null; // 延迟加载
+    // 自动解析的图标库缓存，和用户自定义图标分开保存
+    this.resolvedIconStorageKey = RESOLVED_ICON_STORAGE_KEY;
+    this.resolvedIcons = null; // 延迟加载
     this.storageInitialized = false;
     // 正在获取中的 favicon 请求去重
     this.faviconPending = new Map();
@@ -30,6 +34,7 @@ class BookmarkStore {
     if (this.storageInitialized) return;
     this.faviconCache = await this._loadMapFromStorage(this.faviconStorageKey);
     this.customIcons = await this._loadMapFromStorage(this.customIconStorageKey);
+    this.resolvedIcons = await this._loadMapFromStorage(this.resolvedIconStorageKey);
     this.storageInitialized = true;
   }
 
@@ -283,6 +288,44 @@ class BookmarkStore {
   getCustomIcon(bookmarkId) {
     this._loadCustomIcons();
     return this.customIcons.get(bookmarkId) || null;
+  }
+
+  // ========== 自动解析图标缓存 ==========
+
+  _loadResolvedIcons() {
+    if (this.resolvedIcons !== null) return;
+    this.resolvedIcons = new Map();
+    const stored = this._readLocalStorageObject(this.resolvedIconStorageKey);
+    if (stored) {
+      for (const [key, value] of Object.entries(stored)) {
+        this.resolvedIcons.set(key, value);
+      }
+    }
+  }
+
+  setResolvedIcon(bookmarkId, iconModel) {
+    this._loadResolvedIcons();
+    this.resolvedIcons.set(bookmarkId, iconModel);
+    const obj = Object.fromEntries(this.resolvedIcons);
+    this._writeChromeStorageObject(this.resolvedIconStorageKey, obj);
+    try {
+      localStorage.setItem(this.resolvedIconStorageKey, JSON.stringify(obj));
+    } catch {}
+  }
+
+  clearResolvedIcon(bookmarkId) {
+    this._loadResolvedIcons();
+    this.resolvedIcons.delete(bookmarkId);
+    const obj = Object.fromEntries(this.resolvedIcons);
+    this._writeChromeStorageObject(this.resolvedIconStorageKey, obj);
+    try {
+      localStorage.setItem(this.resolvedIconStorageKey, JSON.stringify(obj));
+    } catch {}
+  }
+
+  getResolvedIcon(bookmarkId) {
+    this._loadResolvedIcons();
+    return this.resolvedIcons.get(bookmarkId) || null;
   }
 
   // ========== Favicon 获取 ==========

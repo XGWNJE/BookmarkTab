@@ -6,16 +6,17 @@
   height: 64px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-4);
   padding: 0 max(var(--space-4), calc((100vw - 1200px) / 2));
-  background: color-mix(in srgb, var(--color-bg) 94%, transparent);
+  background: rgb(var(--color-bg-rgb) / var(--toolbar-alpha, 0.94));
   border-bottom: 1px solid var(--color-border);
   z-index: 100;
   transition: background var(--transition-base);
 }
 
 .toolbar.visible {
-  background: var(--color-bg);
+  background: rgb(var(--color-bg-rgb) / var(--toolbar-alpha, 0.94));
 }
 
 .toolbar-section {
@@ -25,9 +26,9 @@
   min-width: 0;
 }
 
-.toolbar-primary-actions,
 .toolbar-utility-actions {
   flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .toolbar-btn {
@@ -51,13 +52,22 @@
     transform var(--transition-fast);
 }
 
+.toolbar-icon-btn {
+  width: 44px;
+  min-height: 44px;
+  flex: 0 0 44px;
+  padding: 0;
+}
+
 .toolbar-btn:hover {
   background: var(--color-bg-soft);
   border-color: var(--color-border-strong);
 }
 
 .menu-trigger.active,
-.menu-trigger.active:hover {
+.menu-trigger.active:hover,
+.search-trigger.active,
+.search-trigger.active:hover {
   background: var(--color-action);
   border-color: var(--color-action);
   color: var(--color-action-text);
@@ -68,9 +78,14 @@
 }
 
 .toolbar-icon {
-  width: 18px;
-  height: 18px;
+  width: 19px;
+  height: 19px;
   color: currentColor;
+}
+
+.toolbar-icon .app-icon {
+  width: 19px;
+  height: 19px;
 }
 
 .toolbar-label {
@@ -94,7 +109,8 @@
   z-index: 200;
 }
 
-.menu-trigger.active:hover::after {
+.menu-trigger.active:hover::after,
+.search-trigger.active:hover::after {
   content: none;
 }
 

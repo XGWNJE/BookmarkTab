@@ -1,6 +1,7 @@
 :root {
   /* Lumen Index color tokens */
   --color-bg: #fafaf7;
+  --color-bg-rgb: 250 250 247;
   --color-bg-soft: #f4f3ee;
   --color-surface: #ffffff;
   --color-surface-muted: #f7f7f2;
@@ -89,6 +90,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --color-bg: #181817;
+    --color-bg-rgb: 24 24 23;
     --color-bg-soft: #20201e;
     --color-surface: #232321;
     --color-surface-muted: #1e1e1c;

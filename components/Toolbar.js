@@ -2,27 +2,37 @@
  * Toolbar - 顶部工具栏
  */
 import EventBus from '../core/EventBus.js';
-import Router from '../core/Router.js';
 
 class Toolbar {
   constructor() {
     this.element = document.getElementById('toolbar');
+    this.menuPanel = document.getElementById('menu-panel');
+    this.menuTrigger = document.getElementById('menu-trigger');
     this.init();
   }
 
   init() {
-    // 按钮事件
-    document.getElementById('btn-new-bookmark').addEventListener('click', () => {
-      EventBus.emit('toolbar:newBookmark');
-    });
+    this.bindAction('menu-new-bookmark', 'toolbar:newBookmark', { closeMenu: true });
+    this.bindAction('menu-new-folder', 'toolbar:newFolder', { closeMenu: true });
+    this.bindAction('btn-search', 'toolbar:search', { closeMenu: true });
+  }
 
-    document.getElementById('btn-new-folder').addEventListener('click', () => {
-      EventBus.emit('toolbar:newFolder');
-    });
+  bindAction(id, eventName, options = {}) {
+    const button = document.getElementById(id);
+    if (!button) return;
 
-    document.getElementById('btn-search').addEventListener('click', () => {
-      EventBus.emit('toolbar:search');
+    button.addEventListener('click', () => {
+      if (options.closeMenu) {
+        this.closeMenuPanel();
+      }
+      EventBus.emit(eventName);
     });
+  }
+
+  closeMenuPanel() {
+    this.menuPanel?.classList.remove('visible');
+    this.menuTrigger?.classList.remove('active');
+    this.menuTrigger?.setAttribute('aria-expanded', 'false');
   }
 }
 

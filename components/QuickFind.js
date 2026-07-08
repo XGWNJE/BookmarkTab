@@ -11,6 +11,7 @@ class QuickFind {
     this.dialog = document.getElementById('quick-find');
     this.input = document.getElementById('quick-find-input');
     this.resultsContainer = document.getElementById('quick-find-results');
+    this.trigger = document.getElementById('btn-search');
     this.selectedIndex = -1;
     this.results = [];
     this.searchTimeout = null;
@@ -64,6 +65,8 @@ class QuickFind {
 
   show() {
     this.dialog.classList.remove('hidden');
+    this.trigger?.classList.add('active');
+    this.trigger?.setAttribute('aria-expanded', 'true');
     this.input.value = '';
     this.results = [];
     this.selectedIndex = -1;
@@ -73,6 +76,8 @@ class QuickFind {
 
   hide() {
     this.dialog.classList.add('hidden');
+    this.trigger?.classList.remove('active');
+    this.trigger?.setAttribute('aria-expanded', 'false');
     this.input.value = '';
   }
 

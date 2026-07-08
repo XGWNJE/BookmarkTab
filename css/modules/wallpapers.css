@@ -20,14 +20,6 @@
   inset: 0;
   backdrop-filter: blur(var(--wallpaper-blur, 0));
   -webkit-backdrop-filter: blur(var(--wallpaper-blur, 0));
-  background:
-    linear-gradient(180deg, rgba(250, 250, 247, 0.92), rgba(250, 250, 247, 0.86));
+  background: rgb(var(--color-bg-rgb) / var(--wallpaper-overlay-alpha, 0.88));
   pointer-events: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  .wallpaper::after {
-    background:
-      linear-gradient(180deg, rgba(24, 24, 23, 0.9), rgba(24, 24, 23, 0.86));
-  }
 }

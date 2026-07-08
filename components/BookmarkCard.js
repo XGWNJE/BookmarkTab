@@ -4,9 +4,9 @@
 import EventBus from '../core/EventBus.js';
 import BookmarkStore from '../core/BookmarkStore.js';
 import { iconSvg } from '../core/IconLibrary.js';
-
-/** 判断存储值是否为原始 SVG 文本 */
-const isSvgRaw = (val) => typeof val === 'string' && val.trimStart().startsWith('<');
+import { resolveBookmarkIcon } from '../core/icons/IconResolver.js';
+import { isSvgRaw } from '../core/icons/IconSanitizer.js';
+import { validateBitmapDimensions } from '../core/icons/BitmapIconProcessor.js';
 
 /** 将原始 SVG 文本应用到容器元素（注入 DOM，绕过 CSP） */
 function applySvgToElement(el, svgText) {
@@ -32,6 +32,38 @@ function applyDefaultFolderIcon(el) {
   el.innerHTML = iconSvg('folder', { className: 'app-icon card-folder-svg' });
   el.style.backgroundImage = '';
   el.style.backgroundSize = '';
+}
+
+function applyInitialToElement(el, value) {
+  el.innerHTML = '';
+  el.style.backgroundImage = 'none';
+  el.style.backgroundSize = '';
+  const fallbackIcon = document.createElement('div');
+  fallbackIcon.className = 'favicon-fallback';
+  fallbackIcon.innerHTML = `<div class="favicon-initial">${escapeHtml(value || '?')}</div>`;
+  fallbackIcon.style.display = 'flex';
+  el.appendChild(fallbackIcon);
+}
+
+function applyIconModelToElement(el, model) {
+  if (!model) {
+    applyInitialToElement(el, '?');
+    return;
+  }
+
+  if (model.type === 'svg') {
+    applySvgToElement(el, model.value);
+  } else if (model.type === 'image') {
+    applyImageToElement(el, model.value);
+  } else {
+    applyInitialToElement(el, model.value);
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 class BookmarkCard {
@@ -84,27 +116,7 @@ class BookmarkCard {
       }
     } else {
       icon.classList.add('favicon');
-
-      const customIcon = BookmarkStore.getCustomIcon(this.data.id);
-      const cachedFavicon = customIcon ? null : BookmarkStore.getFavicon(this.data.url);
-      const iconData = customIcon || cachedFavicon;
-
-      if (iconData) {
-        if (isSvgRaw(iconData)) {
-          applySvgToElement(icon, iconData);
-        } else {
-          icon.style.backgroundImage = `url(${iconData})`;
-          icon.style.backgroundSize = customIcon ? 'contain' : '';
-        }
-      }
-
-      // 备用图标（favicon 未加载时显示首字母）
-      const fallbackIcon = document.createElement('div');
-      fallbackIcon.className = 'favicon-fallback';
-      const initial = (this.data.title || '?').charAt(0).toUpperCase();
-      fallbackIcon.innerHTML = `<div class="favicon-initial">${this.escapeHtml(initial)}</div>`;
-      fallbackIcon.style.display = iconData ? 'none' : 'flex';
-      icon.appendChild(fallbackIcon);
+      applyIconModelToElement(icon, resolveBookmarkIcon(this.data, { storage: BookmarkStore }));
     }
 
     iconWrapper.appendChild(icon);
@@ -152,9 +164,7 @@ class BookmarkCard {
   }
 
   escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    return escapeHtml(text);
   }
 
   bindEvents() {
@@ -433,38 +443,58 @@ class BookmarkCard {
 
     const items = [
       {
-        label: '重命名',
+        label: '编辑名称',
         action: () => {
           const titleEl = this.element.querySelector('.card-title');
           this.startEdit(titleEl);
         }
       },
-      ...(!this.isFolder ? [{
-        label: '刷新图标',
-        action: () => this.refreshFavicon()
-      }] : []),
       {
-        label: '移动到...',
+        label: '移动到文件夹...',
         action: () => EventBus.emit('card:move', { id: this.data.id })
       },
+      { type: 'separator' },
+      ...(!this.isFolder ? [{
+        label: '图标：重新匹配默认图标',
+        action: () => this.refreshDefaultIcon()
+      }] : []),
       {
-        label: hasCustomIcon ? '更换图标...' : '自定义图标...',
-        action: () => this.pickCustomIcon(x, y)
+        label: '图标：匹配本地图标',
+        action: () => EventBus.emit('iconStudio:openLocal', {
+          bookmark: this.data
+        })
       },
       {
-        label: '选择 SVG 图标',
+        label: '图标：搜索 SVG',
         action: () => EventBus.emit('iconStudio:open', {
           bookmark: this.data
         })
+      },
+      {
+        label: '图标：上传高清图片',
+        action: () => this.uploadBitmapIcon()
       },
     ];
 
     if (hasCustomIcon) {
       items.push({
-        label: '恢复默认图标',
+        label: '图标：恢复默认',
         action: () => this.removeCustomIcon()
       });
     }
+
+    items.push(
+      { type: 'separator' },
+      {
+        label: '删除',
+        className: 'danger',
+        action: () => EventBus.emit('card:requestDelete', {
+          id: this.data.id,
+          isFolder: this.isFolder,
+          title: this.data.title
+        })
+      }
+    );
 
     items.forEach(item => {
       if (item.type === 'separator') {
@@ -511,45 +541,11 @@ class BookmarkCard {
     }, 0);
   }
 
-  /**
-   * 选择自定义图标
-   * 弹出选择方式：文件选择 或 粘贴 SVG 代码
-   */
-  pickCustomIcon(x = 0, y = 0) {
-    // 弹出选择方式菜单
-    const picker = document.createElement('div');
-    picker.className = 'context-menu';
-    picker.innerHTML = `
-      <div class="context-menu-item" data-action="file">从文件选择</div>
-      <div class="context-menu-item" data-action="svg">粘贴 SVG 代码</div>
-    `;
-
-    picker.style.cssText = `position:fixed;left:${x}px;top:${y}px;z-index:3000;`;
-    document.body.appendChild(picker);
-
-    requestAnimationFrame(() => {
-      const pr = picker.getBoundingClientRect();
-      if (pr.right > window.innerWidth)  picker.style.left = `${window.innerWidth - pr.width - 8}px`;
-      if (pr.bottom > window.innerHeight) picker.style.top = `${window.innerHeight - pr.height - 8}px`;
-    });
-
-    const close = () => picker.remove();
-
-    picker.addEventListener('click', (e) => {
-      const action = e.target.closest('[data-action]')?.dataset.action;
-      close();
-      if (action === 'file') this._pickFromFile();
-      else if (action === 'svg') this.showSvgPasteDialog();
-    });
-
-    setTimeout(() => document.addEventListener('click', close, { once: true }), 0);
-  }
-
-  /** 从文件选择图标 */
-  _pickFromFile() {
+  /** 上传自定义位图图标 */
+  uploadBitmapIcon() {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'image/svg+xml,image/png,image/jpeg,image/webp,image/gif,image/avif,image/x-icon';
+    input.accept = 'image/png,image/jpeg,image/webp,image/gif,image/avif,image/x-icon';
 
     input.addEventListener('change', () => {
       const file = input.files[0];
@@ -563,160 +559,32 @@ class BookmarkCard {
         return;
       }
 
-      if (file.type === 'image/svg+xml') {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const svgText = this.sanitizeSvg(reader.result);
-          if (!svgText) {
-            this._showToast('SVG 代码无效或包含危险内容');
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const validation = validateBitmapDimensions(img.naturalWidth, img.naturalHeight);
+          if (!validation.ok) {
+            this._showToast(validation.reason);
             return;
           }
-          BookmarkStore.setCustomIcon(this.data.id, svgText);
-          this.updateIcon(svgText);
+          const canvas = document.createElement('canvas');
+          const size = 256;
+          canvas.width = size; canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          const scale = Math.min(size / img.width, size / img.height);
+          const w = img.width * scale, h = img.height * scale;
+          ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+          const dataUrl = canvas.toDataURL('image/png');
+          BookmarkStore.setCustomIcon(this.data.id, dataUrl);
+          this.updateIcon(dataUrl);
         };
-        reader.readAsText(file);
-      } else {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const img = new Image();
-          img.onload = () => {
-            if (img.naturalWidth < 32 || img.naturalHeight < 32) {
-              this._showToast(`图标尺寸太小（${img.naturalWidth}×${img.naturalHeight}），建议至少 32×32`);
-              return;
-            }
-            const canvas = document.createElement('canvas');
-            const size = 256;
-            canvas.width = size; canvas.height = size;
-            const ctx = canvas.getContext('2d');
-            const scale = Math.min(size / img.width, size / img.height);
-            const w = img.width * scale, h = img.height * scale;
-            ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
-            const dataUrl = canvas.toDataURL('image/png');
-            BookmarkStore.setCustomIcon(this.data.id, dataUrl);
-            this.updateIcon(dataUrl);
-          };
-          img.src = reader.result;
-        };
-        reader.readAsDataURL(file);
-      }
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
     });
 
     input.click();
-  }
-
-  /** 显示 SVG 代码粘贴对话框 */
-  showSvgPasteDialog() {
-    const overlay = document.createElement('div');
-    overlay.className = 'dialog';
-    overlay.innerHTML = `
-      <div class="dialog-overlay"></div>
-      <div class="dialog-content svg-paste-dialog">
-        <div class="dialog-header">
-          <h3>粘贴 SVG 代码</h3>
-          <button class="dialog-close" data-action="close" aria-label="关闭">
-            ${iconSvg('x')}
-          </button>
-        </div>
-        <div class="dialog-body">
-          <textarea class="svg-paste-input form-input" rows="8"
-            placeholder="将 SVG 代码粘贴到此处…&#10;&#10;<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot;>&#10;  ...&#10;</svg>"
-            spellcheck="false" style="font-family:monospace;font-size:12px;resize:vertical;"></textarea>
-          <div class="svg-paste-preview"></div>
-        </div>
-        <div class="dialog-footer">
-          <button class="btn btn-secondary" data-action="cancel">取消</button>
-          <button class="btn btn-primary" data-action="confirm" disabled>应用</button>
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(overlay);
-
-    const textarea = overlay.querySelector('.svg-paste-input');
-    const preview  = overlay.querySelector('.svg-paste-preview');
-    const confirmBtn = overlay.querySelector('[data-action="confirm"]');
-
-    textarea.addEventListener('input', () => {
-      const clean = this.sanitizeSvg(textarea.value.trim());
-      if (clean) {
-        preview.innerHTML = clean;
-        const svgEl = preview.querySelector('svg');
-        if (svgEl) svgEl.style.cssText = 'width:100%;height:100%;display:block;';
-        confirmBtn.disabled = false;
-      } else {
-        preview.innerHTML = '';
-        confirmBtn.disabled = true;
-      }
-    });
-
-    overlay.addEventListener('click', (e) => {
-      const action = e.target.closest('[data-action]')?.dataset.action;
-      if (!action) return;
-      if (action === 'confirm') {
-        const clean = this.sanitizeSvg(textarea.value.trim());
-        if (clean) {
-          BookmarkStore.setCustomIcon(this.data.id, clean);
-          this.updateIcon(clean);
-        } else {
-          this._showToast('SVG 代码无效或包含危险内容');
-        }
-      }
-      overlay.remove();
-    });
-
-    setTimeout(() => textarea.focus(), 50);
-  }
-
-  /**
-   * 清理 SVG：去除 script、on* 事件、外部链接等安全风险
-   * @returns {string|null} 清理后的 SVG，非法输入返回 null
-   */
-  sanitizeSvg(raw) {
-    if (!raw || !raw.trimStart().startsWith('<')) return null;
-    try {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(raw, 'image/svg+xml');
-      // DOMParser 解析失败时会返回一个包含 <parsererror> 的文档
-      if (doc.querySelector('parsererror')) return null;
-      const svgEl = doc.querySelector('svg');
-      if (!svgEl) return null;
-
-      // 移除可执行内容、外部资源和复杂嵌入能力。
-      svgEl.querySelectorAll(
-        'script, iframe, foreignObject, object, embed, link, style, image, use'
-      ).forEach(el => el.remove());
-
-      svgEl.querySelectorAll('*').forEach(el => {
-        [...el.attributes].forEach(attr => {
-          const name = attr.name.toLowerCase();
-          const value = attr.value.trim();
-          const normalizedValue = value.replace(/\s+/g, '').toLowerCase();
-
-          if (/^on/i.test(name)) {
-            el.removeAttribute(attr.name);
-            return;
-          }
-
-          if (name === 'style' && /(url\(|expression\(|javascript:|data:)/i.test(value)) {
-            el.removeAttribute(attr.name);
-            return;
-          }
-
-          if ((name === 'href' || name === 'xlink:href') && !value.startsWith('#')) {
-            el.removeAttribute(attr.name);
-            return;
-          }
-
-          if (/(javascript:|data:)/i.test(normalizedValue)) {
-            el.removeAttribute(attr.name);
-          }
-        });
-      });
-
-      return svgEl.outerHTML;
-    } catch {
-      return null;
-    }
   }
 
   /**
@@ -765,29 +633,21 @@ class BookmarkCard {
       // 文件夹：恢复默认 SVG
       this.updateIcon(null);
     } else {
-      // 书签：恢复 favicon 或首字母
-      const cachedFavicon = BookmarkStore.getFavicon(this.data.url);
-      this.updateIcon(cachedFavicon || null);
+      this.updateIcon(resolveBookmarkIcon(this.data, { storage: BookmarkStore }));
     }
   }
 
   /**
-   * 刷新书签图标（清除缓存后重新获取）
+   * 重新匹配默认图标（清除自动解析缓存后重新匹配图标库）
    */
-  async refreshFavicon() {
+  async refreshDefaultIcon() {
     const iconEl = this.element.querySelector('.card-icon');
-    const fallbackEl = iconEl?.querySelector('.favicon-fallback');
 
-    // 闪烁提示：隐藏旧图标
     if (iconEl) iconEl.style.opacity = '0';
-    if (fallbackEl) fallbackEl.style.display = 'none';
 
-    BookmarkStore.clearFavicon(this.data.url);
-    BookmarkStore.removeCustomIcon(this.data.id);
-    const favicon = await BookmarkStore.fetchFavicon(this.data.url);
+    BookmarkStore.clearResolvedIcon(this.data.id);
 
-    // 闪烁提示：显示新图标
-    this.updateIcon(favicon || null);
+    this.updateIcon(resolveBookmarkIcon(this.data, { storage: BookmarkStore }));
     if (iconEl) {
       iconEl.style.transition = 'opacity 0.15s';
       iconEl.style.opacity = '1';
@@ -796,11 +656,22 @@ class BookmarkCard {
 
   /**
    * 更新卡片图标显示
-   * @param {string|null} iconData - 原始 SVG 文本 / data URL / null（恢复默认）
+   * @param {object|string|null} iconData - 解析模型 / 原始 SVG 文本 / data URL / null（恢复默认）
    */
   updateIcon(iconData) {
     const iconEl = this.element.querySelector('.card-icon');
     if (!iconEl) return;
+
+    if (iconData && typeof iconData === 'object' && iconData.type) {
+      if (this.isFolder && iconData.type === 'initial') {
+        iconEl.classList.add('folder-default');
+        applyDefaultFolderIcon(iconEl);
+      } else {
+        iconEl.classList.remove('folder-default');
+        applyIconModelToElement(iconEl, iconData);
+      }
+      return;
+    }
 
     if (this.isFolder) {
       if (iconData) {
@@ -816,29 +687,14 @@ class BookmarkCard {
         applyDefaultFolderIcon(iconEl);
       }
     } else {
-      const fallbackEl = iconEl.querySelector('.favicon-fallback');
       if (iconData) {
         if (isSvgRaw(iconData)) {
           applySvgToElement(iconEl, iconData);
-          // SVG 注入后 fallback 被清除，不需要额外隐藏
         } else {
-          iconEl.style.backgroundImage = `url(${iconData})`;
-          iconEl.style.backgroundSize = 'contain';
-          iconEl.style.backgroundPosition = 'center';
-          iconEl.style.backgroundRepeat = 'no-repeat';
-          if (fallbackEl) fallbackEl.style.display = 'none';
+          applyImageToElement(iconEl, iconData);
         }
       } else {
-        iconEl.innerHTML = '';
-        iconEl.style.backgroundImage = 'none';
-        iconEl.style.backgroundSize = '';
-        // 重新创建 fallback（SVG 注入时会被清除）
-        const fb = document.createElement('div');
-        fb.className = 'favicon-fallback';
-        const initial = (this.data.title || '?').charAt(0).toUpperCase();
-        fb.innerHTML = `<div class="favicon-initial">${this.escapeHtml(initial)}</div>`;
-        fb.style.display = 'flex';
-        iconEl.appendChild(fb);
+        applyIconModelToElement(iconEl, resolveBookmarkIcon(this.data, { storage: BookmarkStore }));
       }
     }
   }

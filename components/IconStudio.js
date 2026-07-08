@@ -2,6 +2,8 @@ import EventBus from '../core/EventBus.js';
 import BookmarkStore from '../core/BookmarkStore.js';
 import IconSourceProvider from '../core/IconSourceProvider.js';
 import { iconSvg } from '../core/IconLibrary.js';
+import { getLibraryIconCandidates } from '../core/icons/IconLibraryProvider.js';
+import { sanitizeSvg } from '../core/icons/IconSanitizer.js';
 
 class IconStudio {
   constructor() {
@@ -12,6 +14,8 @@ class IconStudio {
     this.searchDebounce = null;
     this.openedIconfontTabIds = new Set();
     this.isOpen = false;
+    this.mode = 'remote';
+    this.localCandidateContext = null;
     this.init();
   }
 
@@ -19,6 +23,9 @@ class IconStudio {
     this.createDialog();
     EventBus.on('iconStudio:open', ({ bookmark }) => {
       this.show(bookmark);
+    });
+    EventBus.on('iconStudio:openLocal', ({ bookmark }) => {
+      this.showLocal(bookmark);
     });
   }
 
@@ -51,6 +58,7 @@ class IconStudio {
             </div>
           </section>
 
+          <div class="icon-studio-local-context hidden"></div>
           <div class="icon-studio-status"></div>
           <div class="icon-studio-results"></div>
           <div class="icon-studio-preview hidden">
@@ -99,18 +107,45 @@ class IconStudio {
   }
 
   async show(bookmark) {
+    await this.open(bookmark, 'remote');
+  }
+
+  async showLocal(bookmark) {
+    await this.open(bookmark, 'local');
+  }
+
+  async open(bookmark, mode) {
     this.bookmark = bookmark;
+    this.mode = mode;
     this.icons = [];
     this.selectedIcon = null;
+    this.localCandidateContext = null;
     this.isOpen = true;
     this.dialog.classList.remove('hidden');
+    this.configureMode();
     this.dialog.querySelector('.icon-studio-subtitle').textContent =
       `${bookmark.title || '未命名书签'} · ${this.getHostname(bookmark.url) || '文件夹'}`;
-    this.dialog.querySelector('#icon-search-input').value = this.defaultQuery(bookmark);
+    this.dialog.querySelector('#icon-search-input').value = mode === 'local' ? '' : this.defaultQuery(bookmark);
     this.setStatus('');
+    this.renderLocalContext();
     this.renderResults();
     this.updatePreview();
-    this.searchManual();
+    if (mode === 'local') {
+      this.searchLocalCandidates();
+    } else {
+      this.searchManual();
+    }
+  }
+
+  configureMode() {
+    const isLocal = this.mode === 'local';
+    this.dialog.querySelector('.dialog-header h3').textContent = isLocal ? '本地图标候选' : '图标工坊';
+    this.dialog.querySelector('.icon-studio-label').textContent = isLocal ? '追加关键词筛选本地图标' : '搜索 SVG 图标';
+    this.dialog.querySelector('#icon-search-input').placeholder = isLocal
+      ? '可选：输入品牌、产品名或工具名'
+      : '例如：code、mail、cloud、video';
+    this.dialog.querySelector('.icon-studio-source-actions').classList.toggle('hidden', isLocal);
+    this.dialog.querySelector('[data-action="apply"]').textContent = isLocal ? '应用本地图标' : '直接应用 SVG';
   }
 
   async hide() {
@@ -136,6 +171,11 @@ class IconStudio {
   }
 
   async searchManual() {
+    if (this.mode === 'local') {
+      this.searchLocalCandidates();
+      return;
+    }
+
     const query = this.dialog.querySelector('#icon-search-input').value.trim();
     if (!query) {
       this.renderResults([]);
@@ -157,7 +197,7 @@ class IconStudio {
       this.icons = result.icons
         .map(icon => ({
           ...icon,
-          svg: this.sanitizeSvg(icon.svg)
+          svg: sanitizeSvg(icon.svg)
         }))
         .filter(icon => icon.svg);
       this.renderResults();
@@ -171,12 +211,35 @@ class IconStudio {
     }
   }
 
+  searchLocalCandidates() {
+    const query = this.dialog.querySelector('#icon-search-input').value.trim();
+    const result = getLibraryIconCandidates(this.bookmark, { query, limit: 48 });
+    this.localCandidateContext = result;
+    this.selectedIcon = null;
+    this.updatePreview();
+    this.icons = result.candidates
+      .map(icon => ({
+        ...icon,
+        svg: sanitizeSvg(icon.svg)
+      }))
+      .filter(icon => icon.svg);
+    this.renderLocalContext(result);
+    this.renderResults();
+    this.setStatus(`已从本地图标库找到 ${this.icons.length} 个候选。可查看每个候选的匹配信息，也可以输入关键词继续筛选。`);
+  }
+
   renderResults() {
     const container = this.dialog.querySelector('.icon-studio-results');
+    container.classList.toggle('local-candidates', this.mode === 'local');
     if (!this.icons.length) {
       container.innerHTML = '<div class="icon-studio-empty">暂无候选图标</div>';
       return;
     }
+    if (this.mode === 'local') {
+      this.renderLocalResults(container);
+      return;
+    }
+
     container.innerHTML = '';
     this.icons.forEach((icon, index) => {
       const btn = document.createElement('button');
@@ -198,6 +261,70 @@ class IconStudio {
     });
   }
 
+  renderLocalResults(container) {
+    container.innerHTML = '';
+    this.icons.forEach((icon, index) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'icon-studio-local-tile';
+      btn.title = icon.title;
+      btn.dataset.index = String(index);
+
+      const reasons = this.formatMatchDetails(icon.matchDetails, 4);
+      btn.innerHTML = `
+        <span class="icon-studio-local-art">${icon.svg}</span>
+        <span class="icon-studio-local-info">
+          <span class="icon-studio-local-title">${this.escapeHtml(icon.title)}</span>
+          <span class="icon-studio-local-source">${this.escapeHtml(icon.slug)} · ${this.escapeHtml(icon.sourceLabel || icon.source)} · ${Math.round(icon.matchScore || 0)}</span>
+          <span class="icon-studio-local-reasons">${this.escapeHtml(reasons.join(' / ') || '匹配信息不足')}</span>
+        </span>
+      `;
+      btn.addEventListener('click', () => {
+        this.selectedIcon = icon;
+        this.dialog.querySelectorAll('.icon-studio-local-tile').forEach(tile => tile.classList.remove('selected'));
+        btn.classList.add('selected');
+        this.updatePreview();
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  renderLocalContext(result = this.localCandidateContext) {
+    const panel = this.dialog.querySelector('.icon-studio-local-context');
+    if (this.mode !== 'local') {
+      panel.classList.add('hidden');
+      panel.innerHTML = '';
+      return;
+    }
+
+    const context = result || getLibraryIconCandidates(this.bookmark, { limit: 0 });
+    const signals = context.signals;
+    const queries = context.queries || [];
+    const rows = [
+      ['标题', signals.title || '无'],
+      ['URL', signals.urlForDisplay || '无'],
+      ['完整域名', signals.hostname || '无'],
+      ['主域名', signals.primaryDomainRaw || signals.primaryDomain || '无'],
+      ['标题词', signals.titleTokens.join(', ') || '无'],
+      ['域名片段', signals.domainTokens.join(', ') || '无'],
+      ['路径片段', signals.pathTokens.join(', ') || '无'],
+      ['匹配查询', queries.map(query => `${query.sourceLabel}:${query.value}`).join(' / ') || '无']
+    ];
+
+    panel.classList.remove('hidden');
+    panel.innerHTML = `
+      <div class="icon-studio-context-heading">匹配信息</div>
+      <div class="icon-studio-context-grid">
+        ${rows.map(([label, value]) => `
+          <div class="icon-studio-context-row">
+            <span>${this.escapeHtml(label)}</span>
+            <strong>${this.escapeHtml(value)}</strong>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
   updatePreview() {
     const preview = this.dialog.querySelector('.icon-studio-preview');
     const applyBtn = this.dialog.querySelector('[data-action="apply"]');
@@ -213,14 +340,16 @@ class IconStudio {
     previewIcon.innerHTML = '';
     previewIcon.style.backgroundImage = '';
     previewIcon.innerHTML = this.selectedIcon.svg;
-    preview.querySelector('.icon-studio-preview-title').textContent = this.bookmark.title || '未命名书签';
-    preview.querySelector('.icon-studio-preview-source').textContent =
-      `${this.selectedIcon.sourceLabel || this.selectedIcon.source} · ${this.selectedIcon.license || 'unknown license'}`;
+    preview.querySelector('.icon-studio-preview-title').textContent =
+      this.mode === 'local' ? this.selectedIcon.title : (this.bookmark.title || '未命名书签');
+    preview.querySelector('.icon-studio-preview-source').textContent = this.mode === 'local'
+      ? `${this.selectedIcon.sourceLabel || this.selectedIcon.source} · ${this.formatMatchDetails(this.selectedIcon.matchDetails, 3).join(' / ')}`
+      : `${this.selectedIcon.sourceLabel || this.selectedIcon.source} · ${this.selectedIcon.license || 'unknown license'}`;
   }
 
   applySelectedSvg() {
     if (!this.selectedIcon) return;
-    const clean = this.sanitizeSvg(this.selectedIcon.svg);
+    const clean = sanitizeSvg(this.selectedIcon.svg);
     if (!clean) {
       this.setStatus('SVG 无效或包含不安全内容。', true);
       return;
@@ -230,7 +359,7 @@ class IconStudio {
       id: this.bookmark.id,
       iconData: clean
     });
-    this.setStatus('SVG 图标已应用。');
+    this.setStatus(this.mode === 'local' ? '本地图标已应用。' : 'SVG 图标已应用。');
   }
 
   async testIconfontAuth() {
@@ -239,7 +368,7 @@ class IconStudio {
       this.setStatus('正在测试 iconfont 登录授权...');
       const result = await IconSourceProvider.search(query, { limit: 8, source: 'iconfont' });
       const icons = result.icons
-        .map(icon => ({ ...icon, svg: this.sanitizeSvg(icon.svg) }))
+        .map(icon => ({ ...icon, svg: sanitizeSvg(icon.svg) }))
         .filter(icon => icon.svg);
       if (!icons.length) {
         this.setStatus(`iconfont 暂不可用：${(result.notices || []).join(' ') || '未返回 SVG'}`, true);
@@ -250,34 +379,6 @@ class IconStudio {
       this.setStatus(`iconfont 授权可用，已返回 ${icons.length} 个候选。`);
     } catch (err) {
       this.setStatus(`iconfont 测试失败：${this.safeError(err)}`, true);
-    }
-  }
-
-  sanitizeSvg(raw) {
-    if (!raw || !raw.trimStart().startsWith('<')) return null;
-    try {
-      const doc = new DOMParser().parseFromString(raw, 'image/svg+xml');
-      if (doc.querySelector('parsererror')) return null;
-      const svgEl = doc.querySelector('svg');
-      if (!svgEl) return null;
-      svgEl.querySelectorAll('script, iframe, foreignObject, object, embed, link, style, image, use').forEach(el => el.remove());
-      svgEl.querySelectorAll('*').forEach(el => {
-        [...el.attributes].forEach(attr => {
-          const name = attr.name.toLowerCase();
-          const value = attr.value.trim();
-          const normalized = value.replace(/\s+/g, '').toLowerCase();
-          if (/^on/i.test(name) || /(javascript:|data:)/i.test(normalized)) {
-            el.removeAttribute(attr.name);
-            return;
-          }
-          if ((name === 'href' || name === 'xlink:href') && !value.startsWith('#')) {
-            el.removeAttribute(attr.name);
-          }
-        });
-      });
-      return svgEl.outerHTML;
-    } catch {
-      return null;
     }
   }
 
@@ -329,6 +430,12 @@ class IconStudio {
     }, new Map());
 
     return [...counts.entries()].map(([name, count]) => `${name} ${count}`).join(' / ') || '无';
+  }
+
+  formatMatchDetails(details = [], limit = 4) {
+    return details
+      .slice(0, limit)
+      .map(detail => `${detail.sourceLabel}:${detail.value}（${detail.matchType}）`);
   }
 
   escapeHtml(text) {

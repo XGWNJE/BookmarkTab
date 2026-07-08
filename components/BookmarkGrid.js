@@ -13,8 +13,6 @@ class BookmarkGrid {
     this.cards = new Map();
     this.selectedCards = new Set();
     this.isLoading = false;
-    this.isRefreshingFavicons = false;
-    this.faviconRefreshTimeout = null;
     this.suppressNextMoveRefresh = false;
 
     this.init();
@@ -167,62 +165,6 @@ class BookmarkGrid {
         return;
       }
     }
-
-    // 导航变化后刷新缺失的 favicon
-    this.scheduleFaviconRefresh();
-  }
-
-  scheduleFaviconRefresh() {
-    // 取消之前的刷新任务
-    if (this.faviconRefreshTimeout) {
-      clearTimeout(this.faviconRefreshTimeout);
-      this.faviconRefreshTimeout = null;
-    }
-
-    // 如果正在刷新，跳过
-    if (this.isRefreshingFavicons) {
-      return;
-    }
-
-    // 延迟 500ms 后开始刷新（导航变化后的稳定期）
-    this.faviconRefreshTimeout = setTimeout(() => {
-      this.refreshMissingFavicons();
-    }, 500);
-  }
-
-  async refreshMissingFavicons() {
-    // 防止重复执行
-    if (this.isRefreshingFavicons) {
-      return;
-    }
-    this.isRefreshingFavicons = true;
-
-    const cards = Array.from(this.cards.values()).filter(card => !card.isFolder);
-
-    // 筛选需要获取 favicon 的卡片
-    const needFetch = cards.filter(card => {
-      // 已有自定义图标，跳过
-      if (BookmarkStore.getCustomIcon(card.data.id)) return false;
-      // 已有缓存，跳过
-      if (BookmarkStore.getFavicon(card.data.url)) return false;
-      // 已确认失败，跳过
-      if (BookmarkStore.isFaviconFailed(card.data.url)) return false;
-      return true;
-    });
-
-    // 分批并行获取（每批 5 个，避免同时请求过多）
-    const batchSize = 5;
-    for (let i = 0; i < needFetch.length; i += batchSize) {
-      const batch = needFetch.slice(i, i + batchSize);
-      await Promise.all(batch.map(async (card) => {
-        const faviconUrl = await BookmarkStore.fetchFavicon(card.data.url);
-        if (faviconUrl) {
-          card.updateIcon(faviconUrl);
-        }
-      }));
-    }
-
-    this.isRefreshingFavicons = false;
   }
 
   async refresh() {

@@ -1,35 +1,45 @@
 .breadcrumb {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
+  width: fit-content;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: var(--space-1);
   min-width: 0;
-  max-width: 100%;
-  min-height: 40px;
-  padding: var(--space-1);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  max-width: min(62vw, 720px);
+  min-height: 34px;
+  padding: 0 var(--space-1);
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: var(--radius-pill);
   z-index: 50;
   opacity: 0;
-  transition: opacity var(--transition-base), max-width var(--transition-base);
+  transition:
+    opacity var(--transition-base),
+    width var(--transition-base),
+    max-width var(--transition-base);
   overflow: hidden;
 }
 
 .breadcrumb.visible {
+  opacity: 0.78;
+}
+
+.breadcrumb.visible:hover,
+.breadcrumb:focus-within {
   opacity: 1;
 }
 
 .breadcrumb-item {
-  max-width: min(240px, 32vw);
-  min-height: 32px;
+  max-width: min(220px, 30vw);
+  min-height: 30px;
   display: inline-flex;
   align-items: center;
-  padding: 0 var(--space-3);
+  padding: 0 var(--space-2);
   border-radius: var(--radius-pill);
   color: var(--text-secondary);
   font-size: var(--font-size-sm);
+  line-height: 1;
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
@@ -40,31 +50,33 @@
 }
 
 .breadcrumb-item:hover {
-  background: var(--color-bg-soft);
+  background: color-mix(in srgb, var(--color-bg-soft) 72%, transparent);
   color: var(--text-primary);
 }
 
 .breadcrumb-item.active {
-  background: var(--color-action);
-  color: var(--color-action-text);
-  font-weight: 560;
+  background: transparent;
+  color: var(--text-primary);
+  font-weight: 580;
   cursor: default;
 }
 
 .breadcrumb-separator {
   color: var(--text-tertiary);
   font-size: var(--font-size-xs);
+  opacity: 0.68;
   flex-shrink: 0;
   user-select: none;
 }
 
 @media (max-width: 760px) {
   .breadcrumb {
-    justify-content: flex-start;
+    max-width: calc(100vw - 124px);
+    min-height: 32px;
   }
 
   .breadcrumb-item {
-    max-width: 28vw;
+    max-width: 34vw;
     padding: 0 var(--space-2);
     font-size: var(--font-size-xs);
   }

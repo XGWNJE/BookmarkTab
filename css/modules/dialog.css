@@ -199,35 +199,6 @@ textarea.form-input {
   background: var(--danger-hover);
 }
 
-.svg-paste-preview {
-  margin-top: var(--space-3);
-  width: 100%;
-  height: 96px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background: var(--color-bg-soft);
-  border: 1px dashed var(--color-border-strong);
-  border-radius: var(--radius-md);
-  transition: border-color var(--transition-fast);
-}
-
-.svg-paste-preview:not(:empty) {
-  border-style: solid;
-  border-color: var(--color-action);
-}
-
-.svg-paste-preview svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-.dialog-content.svg-paste-dialog {
-  max-width: 560px;
-}
-
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

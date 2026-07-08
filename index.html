@@ -13,29 +13,16 @@
 
     <!-- 顶部工具栏 -->
     <header id="toolbar" class="toolbar">
-      <div class="toolbar-section toolbar-primary-actions">
-        <button id="btn-new-bookmark" class="toolbar-btn" title="新建书签 (N)">
-          <span class="toolbar-icon" data-icon="bookmark-plus"></span>
-          <span class="toolbar-label">新建书签</span>
-        </button>
-        <button id="btn-new-folder" class="toolbar-btn" title="新建文件夹 (Shift+N)">
-          <span class="toolbar-icon" data-icon="folder-plus"></span>
-          <span class="toolbar-label">新建文件夹</span>
-        </button>
-      </div>
-
       <nav id="breadcrumb" class="breadcrumb">
         <span class="breadcrumb-item" data-id="1">书签栏</span>
       </nav>
 
       <div class="toolbar-section toolbar-utility-actions">
-        <button id="btn-search" class="toolbar-btn" title="快速查找 (Ctrl+F 或 /)">
+        <button id="btn-search" class="toolbar-btn toolbar-icon-btn search-trigger" type="button" aria-label="快速查找" aria-haspopup="dialog" aria-expanded="false" title="快速查找 (Ctrl+F 或 /)">
           <span class="toolbar-icon" data-icon="search"></span>
-          <span class="toolbar-label">快速查找</span>
         </button>
-        <button id="menu-trigger" class="toolbar-btn menu-trigger" title="工具">
-          <span class="toolbar-icon" data-icon="menu"></span>
-          <span class="toolbar-label">工具</span>
+        <button id="menu-trigger" class="toolbar-btn toolbar-icon-btn menu-trigger" type="button" aria-label="设置" aria-controls="menu-panel" aria-expanded="false" title="设置">
+          <span class="toolbar-icon" data-icon="settings"></span>
         </button>
       </div>
     </header>
@@ -64,23 +51,51 @@
 
     <!-- 头部工具面板 -->
     <div id="menu-panel" class="menu-panel">
-      <div class="menu-panel-title">工具</div>
+      <div class="menu-panel-title">设置</div>
       <div class="menu-section">
-        <div class="menu-section-label">书签跳转方式</div>
+        <div class="menu-section-label">常用操作</div>
+        <div class="menu-action-grid">
+          <button id="menu-new-bookmark" class="menu-action-btn" type="button">
+            <span class="menu-action-icon" data-icon="bookmark-plus"></span>
+            <span class="menu-action-text">新建书签</span>
+            <kbd>N</kbd>
+          </button>
+          <button id="menu-new-folder" class="menu-action-btn" type="button">
+            <span class="menu-action-icon" data-icon="folder-plus"></span>
+            <span class="menu-action-text">新建文件夹</span>
+            <kbd>Shift+N</kbd>
+          </button>
+        </div>
+      </div>
+      <div class="menu-section">
+        <div class="menu-section-label">打开行为</div>
         <div class="menu-toggle-group" id="open-mode-group">
           <button class="menu-toggle-btn" data-value="new" id="open-mode-new">新标签页</button>
           <button class="menu-toggle-btn" data-value="current" id="open-mode-current">当前页</button>
         </div>
       </div>
       <div class="menu-section">
-        <div class="menu-section-label">卡片显示文字</div>
+        <div class="menu-section-label">卡片显示</div>
         <div class="menu-toggle-group" id="card-text-group">
           <button class="menu-toggle-btn" data-value="true" id="card-text-on">显示</button>
           <button class="menu-toggle-btn" data-value="false" id="card-text-off">隐藏</button>
         </div>
       </div>
       <div class="menu-section">
-        <div class="menu-section-label">背景壁纸</div>
+        <div class="menu-section-label">透明度</div>
+        <div class="menu-range-stack">
+          <label class="menu-range-control">
+            <span>头部背景 <strong id="header-opacity-value">94%</strong></span>
+            <input type="range" id="header-opacity" min="55" max="100" step="1" value="94">
+          </label>
+          <label class="menu-range-control">
+            <span>壁纸遮罩 <strong id="wallpaper-overlay-opacity-value">88%</strong></span>
+            <input type="range" id="wallpaper-overlay-opacity" min="0" max="100" step="1" value="88">
+          </label>
+        </div>
+      </div>
+      <div class="menu-section">
+        <div class="menu-section-label">背景</div>
         <div id="wallpaper-grid" class="wallpaper-grid"></div>
       </div>
       <div class="menu-section">

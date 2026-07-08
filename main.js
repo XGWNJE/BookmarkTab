@@ -99,8 +99,14 @@ class App {
         document.querySelectorAll('.dialog, .settings-panel, .quick-find').forEach(el => {
           el.classList.add('hidden');
         });
-        document.getElementById('menu-panel')?.classList.remove('visible');
-        document.getElementById('menu-trigger')?.classList.remove('active');
+        const menuPanel = document.getElementById('menu-panel');
+        const menuTrigger = document.getElementById('menu-trigger');
+        const searchTrigger = document.getElementById('btn-search');
+        menuPanel?.classList.remove('visible');
+        menuTrigger?.classList.remove('active');
+        menuTrigger?.setAttribute('aria-expanded', 'false');
+        searchTrigger?.classList.remove('active');
+        searchTrigger?.setAttribute('aria-expanded', 'false');
       }
 
       // = / + 放大卡片，- 缩小卡片（不与 Ctrl+滚轮冲突）
@@ -182,6 +188,11 @@ class App {
     const panel   = document.getElementById('menu-panel');
     const newBtn  = document.getElementById('open-mode-new');
     const curBtn  = document.getElementById('open-mode-current');
+    const setMenuVisible = (visible) => {
+      panel.classList.toggle('visible', visible);
+      trigger.classList.toggle('active', visible);
+      trigger.setAttribute('aria-expanded', String(visible));
+    };
 
     // 读取并应用已保存的跳转方式（默认：新标签页）
     const saved = localStorage.getItem('openMode') || 'new';
@@ -213,14 +224,7 @@ class App {
     // 点击触发按钮切换面板
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();
-      const isVisible = panel.classList.contains('visible');
-      if (isVisible) {
-        panel.classList.remove('visible');
-        trigger.classList.remove('active');
-      } else {
-        panel.classList.add('visible');
-        trigger.classList.add('active');
-      }
+      setMenuVisible(!panel.classList.contains('visible'));
     });
 
     // 面板内点击不冒泡（防止被外部关闭）
@@ -228,8 +232,7 @@ class App {
 
     // 点击外部关闭
     document.addEventListener('click', () => {
-      panel.classList.remove('visible');
-      trigger.classList.remove('active');
+      setMenuVisible(false);
     });
   }
 

@@ -8,6 +8,8 @@ class SettingsPanel {
     this.customImageKey = 'wallpaperCustomImage';
     this.fitKey = 'wallpaperFit';
     this.blurKey = 'wallpaperBlur';
+    this.headerOpacityKey = 'headerOpacity';
+    this.wallpaperOverlayOpacityKey = 'wallpaperOverlayOpacity';
     this.maxCustomImageChars = 2400000;
 
     this.wallpapers = [
@@ -27,15 +29,72 @@ class SettingsPanel {
     this.currentWallpaper = this.wallpapers.some(wp => wp.id === savedWallpaper) ? savedWallpaper : 'light';
     this.currentFit = localStorage.getItem(this.fitKey) || 'cover';
     this.currentBlur = Math.min(32, Math.max(0, Number(localStorage.getItem(this.blurKey) || '16')));
+    this.currentHeaderOpacity = this.readPercent(this.headerOpacityKey, 94, 55, 100);
+    this.currentWallpaperOverlayOpacity = this.readPercent(this.wallpaperOverlayOpacityKey, 88, 0, 100);
 
     this.init();
   }
 
   init() {
     if (!this.wallpaperGrid) return;
+    this.applyTransparency();
+    this.bindTransparencyControls();
     this.applyWallpaper(this.currentWallpaper);
     this.renderWallpapers();
     this.renderCustomControls();
+  }
+
+  readPercent(key, fallback, min, max) {
+    const value = Number(localStorage.getItem(key) || fallback);
+    if (!Number.isFinite(value)) return fallback;
+    return Math.min(max, Math.max(min, value));
+  }
+
+  applyTransparency() {
+    document.documentElement.style.setProperty('--toolbar-opacity', `${this.currentHeaderOpacity}%`);
+    document.documentElement.style.setProperty('--toolbar-alpha', this.toAlpha(this.currentHeaderOpacity));
+    document.documentElement.style.setProperty('--wallpaper-overlay-opacity', `${this.currentWallpaperOverlayOpacity}%`);
+    document.documentElement.style.setProperty('--wallpaper-overlay-alpha', this.toAlpha(this.currentWallpaperOverlayOpacity));
+  }
+
+  toAlpha(percent) {
+    return (percent / 100).toFixed(2);
+  }
+
+  bindTransparencyControls() {
+    this.bindPercentControl({
+      input: document.getElementById('header-opacity'),
+      value: document.getElementById('header-opacity-value'),
+      storageKey: this.headerOpacityKey,
+      getCurrent: () => this.currentHeaderOpacity,
+      setCurrent: (next) => { this.currentHeaderOpacity = next; }
+    });
+
+    this.bindPercentControl({
+      input: document.getElementById('wallpaper-overlay-opacity'),
+      value: document.getElementById('wallpaper-overlay-opacity-value'),
+      storageKey: this.wallpaperOverlayOpacityKey,
+      getCurrent: () => this.currentWallpaperOverlayOpacity,
+      setCurrent: (next) => { this.currentWallpaperOverlayOpacity = next; }
+    });
+  }
+
+  bindPercentControl({ input, value, storageKey, getCurrent, setCurrent }) {
+    if (!input || !value) return;
+
+    const sync = (next) => {
+      input.value = String(next);
+      value.textContent = `${next}%`;
+    };
+
+    sync(getCurrent());
+    input.addEventListener('input', () => {
+      const next = Number(input.value);
+      setCurrent(next);
+      localStorage.setItem(storageKey, String(next));
+      sync(next);
+      this.applyTransparency();
+    });
   }
 
   renderWallpapers() {
