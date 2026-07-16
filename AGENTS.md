@@ -7,14 +7,14 @@
 - 产品名已确定为 **MarkPad**。用户可见位置必须使用 MarkPad，包括 `manifest.json`、`index.html` title、README、图标导出页和发布说明。
 - 仓库目录仍为 `D:\ObjectCode\BookmarkTab`，内部类名如 `BookmarkStore`、`BookmarkCard` 表示书签领域对象，不作为产品品牌。不要为了品牌统一批量重命名文件、类、事件或存储 key，除非用户明确要求迁移。
 - 当前视觉规范优先参考 `D:\ObjectCode\visual-rules-collection\rules\lumen-index-ui-system.md`：温白/深灰背景、黑白骨架、轻边框、低阴影、克制密度。
-- 品牌方向见 `docs/markpad-brand-visual-guide.md`；触控与图标工坊计划见 `docs/touch-icon-mvp-plan.md`。
+- 品牌方向见 `docs/markpad-brand-visual-guide.md`；当前触控与图标行为见 `docs/touch-icon-guide.md`。
 - `CLAUDE.md` 只是旧工具兼容入口，不再维护独立规则内容。
 
 ## 文档分工
 
 - `README.md`：用户入口，只保留项目定位、功能、安装、快捷键、结构摘要、验证和权限。
 - `AGENTS.md`：Agent 入口，维护架构、边界、验证、危险操作和历史负担说明。
-- `docs/`：专题设计和计划。计划完成后要更新状态，避免 README 和 AGENTS 继续引用过时承诺。
+- `docs/`：当前有效的专题设计与产品行为说明。实施过程和已完成计划不要长期留在仓库中。
 - 不要在 README、AGENTS、docs 之间复制大段同义内容；发现重复时按读者职责归位。
 
 ## 版本与变更记录
@@ -49,9 +49,8 @@ BookmarkTab/
 ├── core/           # 数据层、事件、路由、应用图标和书签图标解析
 │   └── icons/      # 默认书签图标解析、SVG 清理、位图校验和生成数据
 ├── css/            # main.css 入口 + modules/ 模块
-├── docs/           # 品牌、触控和图标工坊计划
+├── docs/           # 品牌、触控和图标行为说明
 ├── icons/          # 扩展图标 + export.html
-├── wallpapers/     # 历史壁纸资源；当前设置使用 SettingsPanel 内置预设
 ├── index.html      # 新标签页入口
 ├── main.js         # 应用装配与全局交互
 └── manifest.json   # Chrome 扩展清单 V3

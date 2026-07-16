@@ -87,39 +87,12 @@ Logo 约束：
 
 ## Color System
 
-MarkPad 不应成为单一蓝紫主题。主色应安静、清晰，辅色用于状态和图标工坊。
+颜色以 `css/modules/variables.css` 中当前生效的 Lumen Index 令牌为准，不维护脱离实现的第二套品牌令牌。
 
-### Core Palette
-
-| Token | Hex | Usage |
-|---|---|---|
-| `--brand-ink` | `#20242A` | 主要文字、深色符号 |
-| `--brand-surface` | `#F5F7FA` | 浅色背景 |
-| `--brand-panel` | `#FFFFFF` | 浅色面板 |
-| `--brand-mist` | `#DCE9EE` | 柔和背景层 |
-| `--brand-accent` | `#3B82F6` | 主操作、选中态 |
-| `--brand-mint` | `#28B87A` | 成功、可用状态 |
-| `--brand-amber` | `#F4A62A` | 提醒、等待中 |
-| `--brand-danger` | `#E05252` | 删除、危险操作 |
-
-### Dark Palette
-
-| Token | Hex | Usage |
-|---|---|---|
-| `--brand-dark-bg` | `#171A1F` | 深色背景 |
-| `--brand-dark-panel` | `#222730` | 深色面板 |
-| `--brand-dark-card` | `#2B313B` | 深色卡片 |
-| `--brand-dark-text` | `#F2F5F7` | 深色模式文字 |
-| `--brand-dark-muted` | `#AAB3C0` | 次级文字 |
-| `--brand-dark-accent` | `#6EA8FF` | 深色主操作 |
-
-### Usage Rules
-
-- 主界面以中性灰、冷白和柔和阴影为主。
-- `--brand-accent` 只用于可点击主操作、当前选择和焦点。
-- 删除操作必须使用 danger 色，不使用普通 accent。
-- mint 只作为成功或可用状态辅助色，不抢主视觉。
-- 图标工坊可以有更多颜色，但主应用框架保持安静。
+- 主界面使用温白或深灰背景、黑白骨架、轻边框和低阴影。
+- 强调色只用于可点击主操作、当前选择和焦点。
+- 删除操作使用危险色，不与普通强调色混用。
+- 图标工坊可以展示品牌原色，但应用框架保持安静。
 
 ## Typography
 
@@ -141,7 +114,6 @@ font-family:
 |---|---:|---:|
 | Card title | 14-16px | 500 |
 | Card meta | 12px | 400 |
-| Bottom bar label | 12-13px | 500 |
 | Dialog title | 18px | 600 |
 | Dialog body | 14px | 400 |
 | Touch primary button | 15-16px | 600 |
@@ -222,7 +194,6 @@ MarkPad 图标应符合：
 SVG 直接应用时：
 
 - 保持原始轮廓。
-- 可以允许用户选择前景色/背景色作为后续增强。
 
 ## Tone Of Voice
 
@@ -232,8 +203,6 @@ SVG 直接应用时：
 
 - `选择图标`
 - `应用到当前书签`
-- `应用到同域名`
-- `恢复 favicon`
 - `只看 iconfont`
 - `打开 iconfont`
 
@@ -265,14 +234,3 @@ SVG 直接应用时：
 - 触控目标不小于 `44px`。
 - 深浅色模式对比度要足够。
 - 图标候选必须有 `title` 或 accessible label。
-- AI 和付费 API 调用按钮要可区分于普通本地操作。
-
-## Brand Implementation Checklist
-
-- `manifest.json` 名称已改为 `MarkPad`。
-- README 标题已改为 `MarkPad`。
-- `index.html` title 已改为 `MarkPad`。
-- 扩展图标按 Logo Direction 重新设计。
-- CSS tokens 增加 brand palette。
-- 触控模式样式使用 `@media (pointer: coarse)`。
-- 图标工坊 UI 遵守本文件的 tone、spacing 和 icon rules。
