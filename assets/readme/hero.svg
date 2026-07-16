@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400" role="img" aria-labelledby="title desc">
+  <title id="title">MarkPad — 面向触控操作的新标签页书签面板</title>
+  <desc id="desc">左侧是 MarkPad 名称和产品定位，右侧以真实界面结构呈现书签栏和三张文件夹卡片。</desc>
+
+  <defs>
+    <linearGradient id="brand-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6EE7B7"/>
+      <stop offset="0.5" stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <linearGradient id="folder-gradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F3DEAA"/>
+      <stop offset="1" stop-color="#FBF7EA"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0.5" y="0.5" width="1199" height="399" rx="28" fill="#FAFAF7" stroke="#E7E5DC"/>
+
+  <g id="identity" transform="translate(58 46)">
+    <rect width="54" height="54" rx="16" fill="url(#brand-gradient)"/>
+    <path d="M27 12 15.5 20v22.5a2 2 0 0 0 2 2h19a2 2 0 0 0 2-2V20L27 12Z" fill="#FFF" fill-opacity="0.96"/>
+    <path d="M27 12 15.5 20h23L27 12Z" fill="#111" fill-opacity="0.12"/>
+    <rect x="21" y="27" width="12" height="2.5" rx="1.25" fill="#6B7DA0" fill-opacity="0.58"/>
+    <rect x="21" y="33" width="8" height="2.5" rx="1.25" fill="#6B7DA0" fill-opacity="0.42"/>
+
+    <text x="72" y="21" fill="#6F6F68" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" font-weight="600" letter-spacing="1.5">CHROME NEW TAB</text>
+    <text x="72" y="45" fill="#111111" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="18" font-weight="650">触控优先 · Manifest V3</text>
+  </g>
+
+  <g id="title-block" transform="translate(58 132)">
+    <text x="0" y="72" fill="#111111" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="78" font-weight="760" letter-spacing="-3">MarkPad</text>
+    <text x="4" y="116" fill="#333333" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="24" font-weight="600">面向触控操作的新标签页书签面板</text>
+    <text x="4" y="151" fill="#6F6F68" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="18">让常用入口更大、更清晰，也更适合被手指按下。</text>
+  </g>
+
+  <g id="feature-chips" transform="translate(62 324)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="16" font-weight="600">
+    <rect width="112" height="38" rx="19" fill="#111111"/>
+    <text x="56" y="25" fill="#FFFFFF" text-anchor="middle">触控优先</text>
+    <rect x="122" width="150" height="38" rx="19" fill="#F4F3EE" stroke="#D5D2C7"/>
+    <text x="197" y="25" fill="#333333" text-anchor="middle">本地图标匹配</text>
+    <rect x="282" width="124" height="38" rx="19" fill="#F4F3EE" stroke="#D5D2C7"/>
+    <text x="344" y="25" fill="#333333" text-anchor="middle">键鼠兼容</text>
+  </g>
+
+  <g id="interface" transform="translate(650 42)">
+    <rect width="500" height="316" rx="24" fill="#F4F3EE" stroke="#D5D2C7"/>
+    <rect x="18" y="18" width="464" height="54" rx="15" fill="#FFFFFF" stroke="#E7E5DC"/>
+    <rect x="34" y="32" width="96" height="26" rx="13" fill="#F7F7F2"/>
+    <text x="82" y="51" fill="#333333" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="16" font-weight="650">书签栏</text>
+    <circle cx="400" cy="45" r="14" fill="#F7F7F2"/>
+    <path d="M395 45h10M400 40v10" stroke="#6F6F68" stroke-width="1.8" stroke-linecap="round"/>
+    <circle cx="438" cy="45" r="14" fill="#F7F7F2"/>
+    <circle cx="434" cy="42" r="4.5" fill="none" stroke="#6F6F68" stroke-width="1.7"/>
+    <path d="m438 46 4 4" stroke="#6F6F68" stroke-width="1.7" stroke-linecap="round"/>
+
+    <g id="card-frequent" transform="translate(28 96)">
+      <rect width="138" height="190" rx="22" fill="#FFFFFF" stroke="#E7E5DC"/>
+      <path d="M22 42V29a7 7 0 0 1 7-7h34l12 12h34a7 7 0 0 1 7 7v74a8 8 0 0 1-8 8H30a8 8 0 0 1-8-8V42Z" fill="url(#folder-gradient)" stroke="#E2D2AB"/>
+      <text x="20" y="151" fill="#111111" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="18" font-weight="700">经常用</text>
+      <text x="20" y="174" fill="#6F6F68" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="16">13 项</text>
+    </g>
+
+    <g id="card-archive" transform="translate(181 96)">
+      <rect width="138" height="190" rx="22" fill="#FFFFFF" stroke="#E7E5DC"/>
+      <path d="M22 42V29a7 7 0 0 1 7-7h34l12 12h34a7 7 0 0 1 7 7v74a8 8 0 0 1-8 8H30a8 8 0 0 1-8-8V42Z" fill="url(#folder-gradient)" stroke="#E2D2AB"/>
+      <text x="20" y="151" fill="#111111" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="18" font-weight="700">长期留存</text>
+      <text x="20" y="174" fill="#6F6F68" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="16">16 项</text>
+    </g>
+
+    <g id="card-later" transform="translate(334 96)">
+      <rect width="138" height="190" rx="22" fill="#FFFFFF" stroke="#E7E5DC"/>
+      <path d="M22 42V29a7 7 0 0 1 7-7h34l12 12h34a7 7 0 0 1 7 7v74a8 8 0 0 1-8 8H30a8 8 0 0 1-8-8V42Z" fill="url(#folder-gradient)" stroke="#E2D2AB"/>
+      <text x="20" y="151" fill="#111111" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="18" font-weight="700">临时收纳</text>
+      <text x="20" y="174" fill="#6F6F68" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="16">1 项</text>
+    </g>
+  </g>
+</svg>
