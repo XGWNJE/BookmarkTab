@@ -5,7 +5,7 @@
   gap: 0;
   padding: 0;
   overflow: hidden;
-  background: var(--color-surface);
+  background: color-mix(in srgb, var(--color-surface) var(--card-background-strength, 100%), transparent);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   cursor: pointer;
@@ -44,7 +44,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: var(--color-bg-soft);
+  background: color-mix(in srgb, var(--color-bg-soft) var(--card-background-strength, 100%), transparent);
   border: 0;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
@@ -111,7 +111,7 @@
   gap: var(--space-1);
   padding: 12px 14px 14px;
   text-align: left;
-  background: var(--color-surface);
+  background: color-mix(in srgb, var(--color-surface) var(--card-background-strength, 100%), transparent);
   border-top: 1px solid var(--color-border);
 }
 
@@ -175,7 +175,7 @@
 
 .bookmark-card.new-card:hover {
   border-color: var(--color-action);
-  background: var(--color-surface);
+  background: color-mix(in srgb, var(--color-surface) var(--card-background-strength, 100%), transparent);
 }
 
 .bookmark-card.new-card .card-icon {

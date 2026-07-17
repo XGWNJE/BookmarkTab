@@ -17,11 +17,6 @@ import SettingsPanel from './components/SettingsPanel.js';
 class App {
   constructor() {
     this.grid = null;
-    // 卡片尺寸：最小 80px，最大 200px，步进 20px
-    this.cardSizeMin = 80;
-    this.cardSizeMax = 200;
-    this.cardSizeStep = 20;
-    this.cardSize = parseInt(localStorage.getItem('cardSize') || '120', 10);
     this.init();
   }
 
@@ -38,9 +33,6 @@ class App {
     new IconStudio();
     new SettingsPanel();
     renderIcons(document);
-
-    // 应用已保存的卡片尺寸
-    this.applyCardSize(this.cardSize);
 
     // 全局快捷键
     this.bindKeyboardShortcuts();
@@ -131,16 +123,7 @@ class App {
   }
 
   resizeCards(direction) {
-    this.cardSize = Math.min(
-      this.cardSizeMax,
-      Math.max(this.cardSizeMin, this.cardSize + direction * this.cardSizeStep)
-    );
-    this.applyCardSize(this.cardSize);
-    localStorage.setItem('cardSize', this.cardSize);
-  }
-
-  applyCardSize(size) {
-    document.documentElement.style.setProperty('--card-size', `${size}px`);
+    EventBus.emit('settings:adjustCardSize', direction);
   }
 
   navigateCards(direction) {
@@ -207,20 +190,6 @@ class App {
       this.applyOpenMode(mode, newBtn, curBtn);
     });
 
-    // 卡片文字显示切换
-    const textOnBtn  = document.getElementById('card-text-on');
-    const textOffBtn = document.getElementById('card-text-off');
-    const savedText  = localStorage.getItem('showCardText') || 'false';
-    this.applyShowCardText(savedText, textOnBtn, textOffBtn);
-
-    document.getElementById('card-text-group').addEventListener('click', (e) => {
-      const btn = e.target.closest('.menu-toggle-btn');
-      if (!btn) return;
-      const show = btn.dataset.value;
-      localStorage.setItem('showCardText', show);
-      this.applyShowCardText(show, textOnBtn, textOffBtn);
-    });
-
     // 点击触发按钮切换面板
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -243,19 +212,6 @@ class App {
     } else {
       newBtn.classList.add('active');
       curBtn.classList.remove('active');
-    }
-  }
-
-  applyShowCardText(show, onBtn, offBtn) {
-    const app = document.getElementById('app');
-    if (show === 'true') {
-      app.dataset.showCardText = 'true';
-      onBtn.classList.add('active');
-      offBtn.classList.remove('active');
-    } else {
-      app.dataset.showCardText = 'false';
-      offBtn.classList.add('active');
-      onBtn.classList.remove('active');
     }
   }
 

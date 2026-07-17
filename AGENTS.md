@@ -45,6 +45,7 @@
 ```
 BookmarkTab/
 ├── CHANGELOG.md  # 版本历史和发布变更
+├── assets/          # 内置壁纸与 README 展示资源
 ├── components/     # UI 组件
 ├── core/           # 数据层、事件、路由、应用图标和书签图标解析
 │   └── icons/      # 默认书签图标解析、SVG 清理、位图校验和生成数据
@@ -75,7 +76,7 @@ BookmarkTab/
 - **MoveDialog.js** — 右键菜单“移动到...”目标文件夹弹窗。
 - **QuickFind.js** — 全局模糊搜索浮层（`/` 或 `Ctrl+F`）。
 - **IconStudio.js** — 图标工坊弹窗。提供本地图标候选和外部 SVG 搜索两种模式，支持预览和直接应用；不接入模型 API 或生图功能。
-- **SettingsPanel.js** — 设置菜单中的外观偏好模块，负责头部透明度、壁纸遮罩透明度、浅色/暗色/自定义壁纸、缩放模式和背景模糊。
+- **SettingsPanel.js** — 设置菜单中的外观偏好模块，按页面背景、书签卡片和顶部栏组织设置；负责壁纸亮度/模糊/缩放、卡片尺寸/文字/背景强度和顶部栏背景强度。`assets/wallpapers/` 中的内置图使用独立缩略图，避免设置面板同时解码全部原图。
 
 ## CSS 维护规则
 
@@ -107,9 +108,9 @@ BookmarkTab/
 
 **图标工坊**：当前只做本地图标候选、SVG 搜索、候选来源/匹配依据标注、预览和直接应用。不新增 API key、模型选择、生图、高清生成或自动批量生成。
 
-**本地偏好**：卡片尺寸、打开方式、卡片文字显隐、壁纸偏好保存在 `localStorage`。不要无迁移方案地改 key。
+**本地偏好**：卡片尺寸、打开方式、卡片文字显隐、卡片背景强度和壁纸偏好保存在 `localStorage`。不要无迁移方案地改 key。
 
-透明度偏好同样保存在 `localStorage`：`headerOpacity` 控制头部背景透明度，`wallpaperOverlayOpacity` 控制壁纸遮罩透明度。不要无迁移方案地改 key。
+外观强度偏好同样保存在 `localStorage`：`cardBackgroundStrength` 控制卡片背景强度，`headerOpacity` 控制顶部栏背景强度，`wallpaperOverlayOpacity` 保留为底层壁纸遮罩值；界面上的“壁纸亮度”使用 `100 - wallpaperOverlayOpacity` 反向映射。不要无迁移方案地改 key 或直接改变数值方向。
 
 ## 工程卫生
 

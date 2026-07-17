@@ -1,5 +1,7 @@
+import EventBus from '../core/EventBus.js';
+
 /**
- * SettingsPanel - 左下角设置菜单中的壁纸偏好
+ * SettingsPanel - 设置菜单中的页面背景、书签卡片与顶部栏外观偏好
  */
 class SettingsPanel {
   constructor() {
@@ -10,10 +12,58 @@ class SettingsPanel {
     this.blurKey = 'wallpaperBlur';
     this.headerOpacityKey = 'headerOpacity';
     this.wallpaperOverlayOpacityKey = 'wallpaperOverlayOpacity';
+    this.cardSizeKey = 'cardSize';
+    this.cardTextKey = 'showCardText';
+    this.cardBackgroundStrengthKey = 'cardBackgroundStrength';
+    this.cardSizeMin = 80;
+    this.cardSizeMax = 200;
+    this.cardSizeStep = 20;
     this.maxCustomImageChars = 2400000;
 
     this.wallpapers = [
       { id: 'light', name: '浅色', type: 'color', value: '#fafaf7' },
+      {
+        id: 'silent-dawn',
+        name: '晨纸',
+        type: 'image',
+        value: 'assets/wallpapers/silent-index-dawn-2560.png',
+        preview: 'assets/wallpapers/silent-index-dawn-preview.png'
+      },
+      {
+        id: 'silent-mist',
+        name: '雾石',
+        type: 'image',
+        value: 'assets/wallpapers/silent-index-mist-2560.png',
+        preview: 'assets/wallpapers/silent-index-mist-preview.png'
+      },
+      {
+        id: 'silent-moss',
+        name: '苔原',
+        type: 'image',
+        value: 'assets/wallpapers/silent-index-moss-2560.png',
+        preview: 'assets/wallpapers/silent-index-moss-preview.png'
+      },
+      {
+        id: 'silent-ink',
+        name: '暮墨',
+        type: 'image',
+        value: 'assets/wallpapers/silent-index-ink-2560.png',
+        preview: 'assets/wallpapers/silent-index-ink-preview.png'
+      },
+      {
+        id: 'silent-forest',
+        name: '深林',
+        type: 'image',
+        value: 'assets/wallpapers/silent-index-forest-2560.png',
+        preview: 'assets/wallpapers/silent-index-forest-preview.png'
+      },
+      {
+        id: 'silent-night',
+        name: '夜蓝',
+        type: 'image',
+        value: 'assets/wallpapers/silent-index-night-2560.png',
+        preview: 'assets/wallpapers/silent-index-night-preview.png'
+      },
       { id: 'dark', name: '暗色', type: 'color', value: '#181817' },
       { id: 'custom', name: '自定义', type: 'custom', value: '' },
     ];
@@ -31,6 +81,9 @@ class SettingsPanel {
     this.currentBlur = Math.min(32, Math.max(0, Number(localStorage.getItem(this.blurKey) || '16')));
     this.currentHeaderOpacity = this.readPercent(this.headerOpacityKey, 94, 55, 100);
     this.currentWallpaperOverlayOpacity = this.readPercent(this.wallpaperOverlayOpacityKey, 88, 0, 100);
+    this.currentCardSize = this.readNumber(this.cardSizeKey, 120, this.cardSizeMin, this.cardSizeMax);
+    this.currentCardText = localStorage.getItem(this.cardTextKey) || 'false';
+    this.currentCardBackgroundStrength = this.readPercent(this.cardBackgroundStrengthKey, 100, 40, 100);
 
     this.init();
   }
@@ -39,12 +92,20 @@ class SettingsPanel {
     if (!this.wallpaperGrid) return;
     this.applyTransparency();
     this.bindTransparencyControls();
+    this.bindCardControls();
+    this.applyCardPreferences();
     this.applyWallpaper(this.currentWallpaper);
     this.renderWallpapers();
     this.renderCustomControls();
   }
 
   readPercent(key, fallback, min, max) {
+    const value = Number(localStorage.getItem(key) || fallback);
+    if (!Number.isFinite(value)) return fallback;
+    return Math.min(max, Math.max(min, value));
+  }
+
+  readNumber(key, fallback, min, max) {
     const value = Number(localStorage.getItem(key) || fallback);
     if (!Number.isFinite(value)) return fallback;
     return Math.min(max, Math.max(min, value));
@@ -70,16 +131,9 @@ class SettingsPanel {
       setCurrent: (next) => { this.currentHeaderOpacity = next; }
     });
 
-    this.bindPercentControl({
-      input: document.getElementById('wallpaper-overlay-opacity'),
-      value: document.getElementById('wallpaper-overlay-opacity-value'),
-      storageKey: this.wallpaperOverlayOpacityKey,
-      getCurrent: () => this.currentWallpaperOverlayOpacity,
-      setCurrent: (next) => { this.currentWallpaperOverlayOpacity = next; }
-    });
   }
 
-  bindPercentControl({ input, value, storageKey, getCurrent, setCurrent }) {
+  bindPercentControl({ input, value, storageKey, getCurrent, setCurrent, apply = () => this.applyTransparency() }) {
     if (!input || !value) return;
 
     const sync = (next) => {
@@ -93,8 +147,69 @@ class SettingsPanel {
       setCurrent(next);
       localStorage.setItem(storageKey, String(next));
       sync(next);
-      this.applyTransparency();
+      apply();
     });
+  }
+
+  bindCardControls() {
+    const sizeInput = document.getElementById('card-size');
+    const sizeValue = document.getElementById('card-size-value');
+    const textGroup = document.getElementById('card-text-group');
+
+    this.bindPercentControl({
+      input: document.getElementById('card-background-strength'),
+      value: document.getElementById('card-background-strength-value'),
+      storageKey: this.cardBackgroundStrengthKey,
+      getCurrent: () => this.currentCardBackgroundStrength,
+      setCurrent: (next) => {
+        this.currentCardBackgroundStrength = next;
+      },
+      apply: () => this.applyCardPreferences()
+    });
+
+    const syncSize = () => {
+      if (!sizeInput || !sizeValue) return;
+      sizeInput.value = String(this.currentCardSize);
+      sizeValue.textContent = `${this.currentCardSize}px`;
+    };
+
+    sizeInput?.addEventListener('input', () => {
+      this.setCardSize(Number(sizeInput.value));
+    });
+
+    textGroup?.addEventListener('click', (event) => {
+      const button = event.target.closest('.menu-toggle-btn');
+      if (!button) return;
+      this.currentCardText = button.dataset.value;
+      localStorage.setItem(this.cardTextKey, this.currentCardText);
+      this.applyCardPreferences();
+    });
+
+    EventBus.on('settings:adjustCardSize', (direction) => {
+      this.setCardSize(this.currentCardSize + direction * this.cardSizeStep);
+      syncSize();
+    });
+
+    syncSize();
+  }
+
+  setCardSize(size) {
+    this.currentCardSize = Math.min(this.cardSizeMax, Math.max(this.cardSizeMin, size));
+    localStorage.setItem(this.cardSizeKey, String(this.currentCardSize));
+    document.documentElement.style.setProperty('--card-size', `${this.currentCardSize}px`);
+    const value = document.getElementById('card-size-value');
+    if (value) value.textContent = `${this.currentCardSize}px`;
+  }
+
+  applyCardPreferences() {
+    this.setCardSize(this.currentCardSize);
+    document.documentElement.style.setProperty('--card-background-strength', `${this.currentCardBackgroundStrength}%`);
+
+    const app = document.getElementById('app');
+    if (app) app.dataset.showCardText = this.currentCardText;
+
+    document.getElementById('card-text-on')?.classList.toggle('active', this.currentCardText === 'true');
+    document.getElementById('card-text-off')?.classList.toggle('active', this.currentCardText !== 'true');
   }
 
   renderWallpapers() {
@@ -133,10 +248,18 @@ class SettingsPanel {
           </button>
         `).join('')}
       </div>
-      <label class="wallpaper-blur-control">
-        <span>背景模糊 <strong id="wallpaper-blur-value">${this.currentBlur}px</strong></span>
-        <input type="range" id="wallpaper-blur" min="0" max="32" step="1" value="${this.currentBlur}">
+      <div class="menu-range-stack wallpaper-range-stack">
+      <label class="menu-range-control">
+        <span>壁纸亮度 <strong id="wallpaper-brightness-value">${100 - this.currentWallpaperOverlayOpacity}%</strong></span>
+        <input type="range" id="wallpaper-brightness" min="0" max="100" step="1" value="${100 - this.currentWallpaperOverlayOpacity}">
+        <span class="menu-range-scale"><small>更暗</small><small>更亮</small></span>
       </label>
+      <label class="menu-range-control">
+        <span>壁纸模糊 <strong id="wallpaper-blur-value">${this.currentBlur}px</strong></span>
+        <input type="range" id="wallpaper-blur" min="0" max="32" step="1" value="${this.currentBlur}">
+        <span class="menu-range-scale"><small>清晰</small><small>柔和</small></span>
+      </label>
+      </div>
     `;
     this.wallpaperGrid.insertAdjacentElement('afterend', controls);
 
@@ -158,6 +281,13 @@ class SettingsPanel {
       localStorage.setItem(this.blurKey, String(this.currentBlur));
       controls.querySelector('#wallpaper-blur-value').textContent = `${this.currentBlur}px`;
       this.applyWallpaper(this.currentWallpaper);
+    });
+    controls.querySelector('#wallpaper-brightness').addEventListener('input', (e) => {
+      const brightness = Number(e.target.value);
+      this.currentWallpaperOverlayOpacity = 100 - brightness;
+      localStorage.setItem(this.wallpaperOverlayOpacityKey, String(this.currentWallpaperOverlayOpacity));
+      controls.querySelector('#wallpaper-brightness-value').textContent = `${brightness}%`;
+      this.applyTransparency();
     });
   }
 
@@ -189,6 +319,12 @@ class SettingsPanel {
 
     if (wp.type === 'color') {
       wallpaper.style.background = wp.value;
+      return;
+    }
+
+    if (wp.type === 'image') {
+      wallpaper.style.backgroundImage = `url("${wp.value}")`;
+      this.applyFit(wallpaper, this.currentFit);
       return;
     }
 
@@ -319,6 +455,11 @@ class SettingsPanel {
     if (wp.type === 'color') {
       return `background:${wp.value};`;
     }
+
+    if (wp.type === 'image') {
+      return `background-image:url('${wp.preview || wp.value}');background-size:cover;background-position:center;`;
+    }
+
     const image = localStorage.getItem(this.customImageKey);
     return image
       ? `background-image:url(${image});background-size:cover;background-position:center;`

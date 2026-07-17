@@ -67,36 +67,57 @@
           </button>
         </div>
       </div>
+      <div class="menu-section menu-section-major">
+        <div class="menu-section-heading">
+          <div class="menu-section-label">页面背景</div>
+          <p>选择壁纸并调整它在内容下方的呈现方式。</p>
+        </div>
+        <div id="wallpaper-grid" class="wallpaper-grid"></div>
+      </div>
+      <div class="menu-section menu-section-major">
+        <div class="menu-section-heading">
+          <div class="menu-section-label">书签卡片</div>
+          <p>控制卡片占用空间、文字信息和背景质感。</p>
+        </div>
+        <div class="menu-range-stack">
+          <label class="menu-range-control">
+            <span>卡片尺寸 <strong id="card-size-value">120px</strong></span>
+            <input type="range" id="card-size" min="80" max="200" step="20" value="120">
+            <span class="menu-range-scale"><small>紧凑</small><small>宽松</small></span>
+          </label>
+          <label class="menu-range-control">
+            <span>卡片背景强度 <strong id="card-background-strength-value">100%</strong></span>
+            <input type="range" id="card-background-strength" min="40" max="100" step="1" value="100">
+            <span class="menu-range-scale"><small>更通透</small><small>更清晰</small></span>
+          </label>
+        </div>
+        <div class="menu-setting-row">
+          <span>卡片文字</span>
+          <div class="menu-toggle-group menu-toggle-compact" id="card-text-group">
+            <button class="menu-toggle-btn" data-value="true" id="card-text-on">显示</button>
+            <button class="menu-toggle-btn" data-value="false" id="card-text-off">隐藏</button>
+          </div>
+        </div>
+      </div>
+      <div class="menu-section menu-section-major">
+        <div class="menu-section-heading">
+          <div class="menu-section-label">顶部栏</div>
+          <p>调整导航和工具按钮背后的衬底强度。</p>
+        </div>
+        <div class="menu-range-stack">
+          <label class="menu-range-control">
+            <span>顶部栏背景强度 <strong id="header-opacity-value">94%</strong></span>
+            <input type="range" id="header-opacity" min="55" max="100" step="1" value="94">
+            <span class="menu-range-scale"><small>更通透</small><small>更清晰</small></span>
+          </label>
+        </div>
+      </div>
       <div class="menu-section">
         <div class="menu-section-label">打开行为</div>
         <div class="menu-toggle-group" id="open-mode-group">
           <button class="menu-toggle-btn" data-value="new" id="open-mode-new">新标签页</button>
           <button class="menu-toggle-btn" data-value="current" id="open-mode-current">当前页</button>
         </div>
-      </div>
-      <div class="menu-section">
-        <div class="menu-section-label">卡片显示</div>
-        <div class="menu-toggle-group" id="card-text-group">
-          <button class="menu-toggle-btn" data-value="true" id="card-text-on">显示</button>
-          <button class="menu-toggle-btn" data-value="false" id="card-text-off">隐藏</button>
-        </div>
-      </div>
-      <div class="menu-section">
-        <div class="menu-section-label">透明度</div>
-        <div class="menu-range-stack">
-          <label class="menu-range-control">
-            <span>头部背景 <strong id="header-opacity-value">94%</strong></span>
-            <input type="range" id="header-opacity" min="55" max="100" step="1" value="94">
-          </label>
-          <label class="menu-range-control">
-            <span>壁纸遮罩 <strong id="wallpaper-overlay-opacity-value">88%</strong></span>
-            <input type="range" id="wallpaper-overlay-opacity" min="0" max="100" step="1" value="88">
-          </label>
-        </div>
-      </div>
-      <div class="menu-section">
-        <div class="menu-section-label">背景</div>
-        <div id="wallpaper-grid" class="wallpaper-grid"></div>
       </div>
       <div class="menu-section">
         <div class="menu-section-label">快捷键</div>

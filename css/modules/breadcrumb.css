@@ -32,13 +32,13 @@
 
 .breadcrumb-item {
   max-width: min(220px, 30vw);
-  min-height: 30px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   padding: 0 var(--space-2);
   border-radius: var(--radius-pill);
   color: var(--text-secondary);
-  font-size: var(--font-size-sm);
+  font-size: 15px;
   line-height: 1;
   cursor: pointer;
   white-space: nowrap;
@@ -78,6 +78,6 @@
   .breadcrumb-item {
     max-width: 34vw;
     padding: 0 var(--space-2);
-    font-size: var(--font-size-xs);
+    font-size: var(--font-size-base);
   }
 }

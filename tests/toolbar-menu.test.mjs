@@ -82,6 +82,8 @@ test('header keeps creation actions inside the settings menu', async () => {
   const toolbarCss = await readFile(new URL('../css/modules/toolbar.css', import.meta.url), 'utf8');
   const wallpapersCss = await readFile(new URL('../css/modules/wallpapers.css', import.meta.url), 'utf8');
   const settingsPanel = await readFile(new URL('../components/SettingsPanel.js', import.meta.url), 'utf8');
+  const cardCss = await readFile(new URL('../css/modules/card.css', import.meta.url), 'utf8');
+  const mainJs = await readFile(new URL('../main.js', import.meta.url), 'utf8');
 
   assert.doesNotMatch(headerHtml, /id="btn-new-bookmark"|id="btn-new-folder"/);
   assert.match(headerHtml, /id="btn-search"[^>]*class="[^"]*toolbar-icon-btn/);
@@ -98,6 +100,8 @@ test('header keeps creation actions inside the settings menu', async () => {
   assert.match(breadcrumbCss, /\.breadcrumb\s*\{[\s\S]*?width:\s*fit-content;/);
   assert.match(breadcrumbCss, /\.breadcrumb\s*\{[\s\S]*?background:\s*transparent;/);
   assert.match(breadcrumbCss, /\.breadcrumb-item\.active\s*\{[\s\S]*?background:\s*transparent;/);
+  assert.match(breadcrumbCss, /\.breadcrumb-item\s*\{[\s\S]*?min-height:\s*44px;/);
+  assert.match(breadcrumbCss, /\.breadcrumb-item\s*\{[\s\S]*?font-size:\s*15px;/);
 
   assert.match(iconLibrary, /Lucide/);
   assert.match(iconLibrary, /search:\s*\[[\s\S]*?<path d="m21 21-4\.34-4\.34"\/>/);
@@ -109,13 +113,30 @@ test('header keeps creation actions inside the settings menu', async () => {
   assert.doesNotMatch(gridCss.match(/@media \(max-width: 768px\)\s*\{[\s\S]*?\.content\s*\{[\s\S]*?\}/)?.[0] || '', /padding-top/);
   assert.match(gridCss, /\.grid-scroll-inner\s*\{[\s\S]*?padding:\s*calc\(64px \+ var\(--space-6\)\) 0 var\(--space-24\);/);
   assert.match(gridCss, /@media \(max-width: 768px\)\s*\{[\s\S]*?\.grid-scroll-inner\s*\{[\s\S]*?padding-top:\s*calc\(60px \+ var\(--space-4\)\);/);
+  assert.match(gridCss, /grid-template-columns:\s*repeat\(auto-fill, minmax\(min\(100%, var\(--card-width\)\), var\(--card-width\)\)\);/);
+  assert.match(gridCss, /justify-content:\s*center;/);
 
+  assert.match(menuHtml, /<div class="menu-section-label">页面背景<\/div>/);
+  assert.match(menuHtml, /<div class="menu-section-label">书签卡片<\/div>/);
+  assert.match(menuHtml, /<div class="menu-section-label">顶部栏<\/div>/);
   assert.match(menuHtml, /id="header-opacity"/);
-  assert.match(menuHtml, /id="wallpaper-overlay-opacity"/);
+  assert.match(menuHtml, /id="card-size"[^>]*min="80"[^>]*max="200"[^>]*step="20"/);
+  assert.match(menuHtml, /id="card-background-strength"/);
+  assert.match(menuHtml, /id="card-text-group"/);
+  assert.doesNotMatch(menuHtml, /壁纸遮罩|id="wallpaper-overlay-opacity"/);
   assert.match(toolbarCss, /--toolbar-alpha/);
   assert.match(wallpapersCss, /--wallpaper-overlay-alpha/);
   assert.match(settingsPanel, /headerOpacityKey/);
   assert.match(settingsPanel, /wallpaperOverlayOpacityKey/);
+  assert.match(settingsPanel, /id="wallpaper-brightness"/);
+  assert.match(settingsPanel, /this\.currentWallpaperOverlayOpacity = 100 - brightness/);
+  assert.match(settingsPanel, /cardBackgroundStrengthKey/);
+  assert.match(settingsPanel, /settings:adjustCardSize/);
+  assert.match(cardCss, /--card-background-strength/);
+  assert.match(mainJs, /EventBus\.emit\('settings:adjustCardSize', direction\)/);
   assert.match(settingsPanel, /--toolbar-opacity/);
   assert.match(settingsPanel, /--wallpaper-overlay-opacity/);
+  assert.match(settingsPanel, /silent-index-dawn-2560\.png/);
+  assert.match(settingsPanel, /silent-index-night-2560\.png/);
+  assert.match(settingsPanel, /wp\.type === 'image'/);
 });

@@ -14,6 +14,18 @@ MarkPad 是面向远程平板触控 PC 场景的新标签页书签面板。主�
 
 视觉样式使用 `css/modules/variables.css` 中的 Lumen Index 令牌：温白或深灰背景、黑白骨架、轻边框、低阴影和克制密度。
 
+## Appearance Settings
+
+设置菜单按作用对象分为三个外观区域：
+
+1. `页面背景`：选择内置或自定义壁纸，调整显示方式、壁纸亮度和模糊。
+2. `书签卡片`：调整卡片尺寸、文字显隐和卡片背景强度。
+3. `顶部栏`：调整导航和工具按钮背后的背景强度。
+
+卡片尺寸支持 80–200 的七档调节，每档必须产生可见的卡片宽度变化；`=` / `-` 快捷键与设置滑块使用同一状态。背景强度数值越高，界面衬底越实；壁纸亮度数值越高，壁纸越亮。
+
+现有本地偏好 key 保持兼容：`cardSize`、`showCardText`、`cardBackgroundStrength`、`headerOpacity`、`wallpaperId`、`wallpaperFit`、`wallpaperBlur` 和 `wallpaperOverlayOpacity`。其中壁纸亮度是 `wallpaperOverlayOpacity` 的反向界面映射，不迁移旧值。
+
 ## Icon Studio
 
 图标工坊提供两条人工修正路径：

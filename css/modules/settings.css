@@ -219,29 +219,8 @@
   border-color: var(--color-action);
 }
 
-.wallpaper-blur-control {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  color: var(--text-secondary);
-  font-size: var(--font-size-xs);
-  font-weight: 560;
-}
-
-.wallpaper-blur-control span {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.wallpaper-blur-control strong {
-  color: var(--text-primary);
-  font-weight: 620;
-}
-
-.wallpaper-blur-control input {
-  width: 100%;
-  accent-color: var(--color-action);
+.wallpaper-range-stack {
+  margin-top: var(--space-1);
 }
 
 @media (max-width: 520px) {

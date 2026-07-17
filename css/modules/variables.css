@@ -84,7 +84,8 @@
 
   --gap: var(--space-7);
   --card-size: 164px;
-  --card-width: clamp(176px, calc(var(--card-size) * 1.45), 320px);
+  --card-width: clamp(116px, calc(var(--card-size) * 1.45), 320px);
+  --card-background-strength: 100%;
 }
 
 @media (prefers-color-scheme: dark) {

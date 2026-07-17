@@ -100,10 +100,12 @@ Logo 约束：
 
 ```css
 font-family:
+  "Geist",
   "Inter",
-  "Segoe UI",
-  "Microsoft YaHei UI",
+  "SF Pro Display",
+  "PingFang SC",
   "Microsoft YaHei",
+  "Noto Sans SC",
   system-ui,
   sans-serif;
 ```
@@ -112,11 +114,12 @@ font-family:
 
 | Role | Size | Weight |
 |---|---:|---:|
-| Card title | 14-16px | 500 |
-| Card meta | 12px | 400 |
-| Dialog title | 18px | 600 |
-| Dialog body | 14px | 400 |
-| Touch primary button | 15-16px | 600 |
+| Header breadcrumb | 15px | 580 |
+| Card title | 16px | 580 |
+| Card meta | 12px | 520 |
+| Dialog title | 18px | 620 |
+| Dialog body | 14px | 400-560 |
+| Touch primary button | 15-16px | 560-620 |
 
 触控模式下不要用过小文字。任何主要按钮文字低于 `13px` 都需要重新评估。
 
@@ -126,11 +129,11 @@ MarkPad 可以圆润，但不要过度可爱。
 
 | Element | Radius |
 |---|---:|
-| Bookmark card | 8-12px |
-| Touch button | 10-12px |
-| Dialog / sheet | 12-16px |
-| Icon preview tile | 10px |
-| Small chip | 8px |
+| Bookmark card | 18px |
+| Touch button | 14-18px 或 pill |
+| Dialog / sheet | 18-24px |
+| Icon preview tile | 14px |
+| Small chip | 6-10px 或 pill |
 
 触控尺寸：
 
@@ -151,14 +154,21 @@ MarkPad 可以圆润，但不要过度可爱。
 
 ### Header Tools
 
-当前主控制区是顶部工具栏和工具菜单。面包屑、新建、搜索和工具入口保持在头部；跳转方式、卡片文字、壁纸偏好和快捷键归入工具菜单。
+当前主控制区是顶部工具栏和设置菜单。面包屑、搜索和设置入口保持在头部；新建书签/文件夹、页面背景、书签卡片、顶部栏、打开行为和快捷键归入设置菜单。
 
 头部工具应包含：
 
-- 新建书签 / 新建文件夹
 - 面包屑导航
 - 搜索
-- 工具菜单
+- 设置菜单
+
+设置菜单按用户正在调整的对象组织，而不是按控件类型组织：
+
+1. `页面背景`：壁纸、显示方式、亮度和模糊。
+2. `书签卡片`：尺寸、文字显隐和背景强度。
+3. `顶部栏`：背景强度。
+
+“背景强度”数值越高，衬底越实；“壁纸亮度”数值越高，壁纸越亮。不要重新使用含义不明确的“透明度”总分组。
 
 图标优先，必要时加短标签。不要重新引入独立底部栏，除非重新设计整体触控信息架构。
 
