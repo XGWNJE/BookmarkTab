@@ -23,6 +23,11 @@ class App {
   async init() {
     await BookmarkStore.initStorage();
 
+    // Chrome 账号书签模式下根文件夹 ID 动态分配，先解析再初始化导航
+    const { bookmarkBar } = await BookmarkStore.getRootFolderIds();
+    const rootNode = await BookmarkStore.getNode(bookmarkBar);
+    Router.setRoot(bookmarkBar, rootNode?.title);
+
     // 初始化组件
     this.grid = new BookmarkGrid();
     new Breadcrumb();
@@ -394,20 +399,21 @@ class App {
 
     try {
       const tree = await BookmarkStore.getTree();
+      const { other: otherBookmarksId } = await BookmarkStore.getRootFolderIds();
       folderTree.innerHTML = '';
-      // 从书签栏（id='1'）开始递归渲染，排除被拖拽节点及其子孙
-      this._renderDragFolderTree(tree[0]?.children || [], folderTree, 0, excludeId);
+      // 从书签栏根节点开始递归渲染，排除被拖拽节点及其子孙
+      this._renderDragFolderTree(tree[0]?.children || [], folderTree, 0, excludeId, otherBookmarksId);
     } catch {
       folderTree.innerHTML = '<div style="padding:12px 20px;font-size:12px;color:var(--danger)">加载失败</div>';
     }
   }
 
   /** 递归渲染文件夹树节点（跳过书签，只渲染文件夹） */
-  _renderDragFolderTree(nodes, container, depth, excludeId) {
+  _renderDragFolderTree(nodes, container, depth, excludeId, otherBookmarksId = null) {
     for (const node of nodes) {
       if (node.url) continue;           // 跳过书签
       if (node.id === excludeId) continue; // 跳过被拖拽节点
-      if (node.id === '2') continue;    // 跳过"其他书签"
+      if (otherBookmarksId && node.id === otherBookmarksId) continue; // 跳过"其他书签"
 
       const item = document.createElement('div');
       item.className = 'drag-folder-item';
@@ -426,7 +432,7 @@ class App {
       container.appendChild(item);
 
       if (node.children?.length) {
-        this._renderDragFolderTree(node.children, container, depth + 1, excludeId);
+        this._renderDragFolderTree(node.children, container, depth + 1, excludeId, otherBookmarksId);
       }
     }
   }

@@ -141,6 +141,19 @@ class BookmarkStore {
   }
 
   /**
+   * 获取根文件夹 ID（书签栏 / 其他书签）
+   * Chrome 账号书签模式下永久文件夹 ID 不再固定为 1/2/3，必须从树动态解析
+   */
+  async getRootFolderIds() {
+    const tree = await this.getTree();
+    const roots = tree[0]?.children || [];
+    return {
+      bookmarkBar: roots[0]?.id || '1',
+      other: roots[1]?.id || null
+    };
+  }
+
+  /**
    * 获取子项
    * @param {string} parentId - 父节点 ID
    */
@@ -596,6 +609,7 @@ class BookmarkStore {
    */
   async getFolderTree(excludeId = null) {
     const tree = await this.getTree();
+    const { other: otherBookmarksId } = await this.getRootFolderIds();
     const result = [];
 
     const processNode = (node, path = '') => {
@@ -610,7 +624,7 @@ class BookmarkStore {
         return null;
       }
 
-      if (node.id === '2') {
+      if (otherBookmarksId && node.id === otherBookmarksId) {
         // 保持现有行为：移动目标不包含"其他书签"
         return null;
       }

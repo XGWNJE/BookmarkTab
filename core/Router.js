@@ -5,12 +5,28 @@ import EventBus from './EventBus.js';
 
 class Router {
   constructor() {
-    // 导航栈
-    this.stack = [{ id: '1', title: '书签栏' }];
+    // 导航栈；根节点 ID 启动时由数据层解析（Chrome 账号书签模式下不固定为 '1'）
+    this.stack = [{ id: null, title: '书签栏' }];
     this.currentIndex = 0;
 
     // 初始化
     this.init();
+  }
+
+  /**
+   * 设置根节点（启动时解析真实 ID 后调用）
+   * @param {string} id - 书签栏根节点 ID
+   * @param {string} [title] - 根节点标题（跟随浏览器语言）
+   */
+  setRoot(id, title) {
+    this.stack[0] = { id, title: title || this.stack[0].title };
+  }
+
+  /**
+   * 获取根节点 ID
+   */
+  getRootId() {
+    return this.stack[0].id;
   }
 
   init() {

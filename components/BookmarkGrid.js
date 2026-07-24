@@ -116,12 +116,23 @@ class BookmarkGrid {
       this.createFolder(parentId, title);
     });
 
-    // 初始加载
-    this.loadFolder('1');
+    // 初始加载（根节点 ID 启动时已由 Router 解析）
+    this.loadFolder(Router.getRootId());
   }
 
   async loadFolder(folderId) {
     if (this.isLoading) return;
+
+    // 文件夹可能已被外部删除（其他设备同步、书签管理器等），
+    // 先校验存在性，失效则回退到根目录，避免 getChildren 抛 "Can't find bookmark for id."
+    if (folderId && folderId !== Router.getRootId()) {
+      const node = await BookmarkStore.getNode(folderId);
+      if (!node) {
+        Router.goToIndex(0); // 触发 navigate -> 重新加载根目录
+        return;
+      }
+    }
+
     this.isLoading = true;
 
     // 清空

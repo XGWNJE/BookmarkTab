@@ -59,7 +59,7 @@ BookmarkTab/
 
 ### 核心层（./core/）
 
-- **BookmarkStore.js** — 数据层，封装 `chrome.bookmarks` API。负责增删改查、历史 favicon 缓存兼容、自定义图标存储、默认图标解析缓存、书签树查询、文件夹子项数量统计。图标缓存优先写入 `chrome.storage.local`，并兼容旧 `localStorage` 数据。
+- **BookmarkStore.js** — 数据层，封装 `chrome.bookmarks` API。负责增删改查、历史 favicon 缓存兼容、自定义图标存储、默认图标解析缓存、书签树查询、文件夹子项数量统计。图标缓存优先写入 `chrome.storage.local`，并兼容旧 `localStorage` 数据。根文件夹（书签栏/其他书签）ID 必须经 `getRootFolderIds()` 动态解析：Chrome 账号书签模式下永久文件夹 ID 不再固定为 1/2/3，禁止硬编码。
 - **IconLibrary.js** — 本地应用图标库。应用自身图标统一由这里输出线性 SVG；书签默认图标不经过这里。
 - **core/icons/** — 书签图标域。`IconResolver.js` 按自定义图标、解析缓存、本地品牌/通用图标库、首字母兜底的顺序解析；`IconLibraryProvider.js` 使用生成后的 Simple Icons、Iconify Logos、Remix、Ant Design、Lobe Icons 和 Lucide 数据，品牌匹配优先，通用工具/信息图标只在品牌未命中后回落；全量扩展库可用于本地图标候选搜索，但自动匹配只允许明确品牌白名单，候选列表展示标题、URL、完整域名、主域名、域名片段、路径片段和匹配依据；`IconSanitizer.js` 负责 SVG 清理；`BitmapIconProcessor.js` 要求上传位图原始尺寸至少 256×256。`core/icons/generated/*.generated.js` 由 `npm run generate:icons` 生成，不要手改。
 - **IconSourceProvider.js** — 外部 SVG 图标源适配层。混排 iconfont、Iconify 和 SVG API；iconfont API 不返回可用 SVG 时，可后台打开/复用与当前关键词匹配的 iconfont 搜索页并抽取 SVG。不得读取不匹配关键词的旧 iconfont 页面。
